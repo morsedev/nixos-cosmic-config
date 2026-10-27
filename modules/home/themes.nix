@@ -1,33 +1,19 @@
 { config, pkgs, lib, ... }:
 
 {
-  # ============ THEMES DE USUARIO (Tokyo Night) ============
-  # Stylix ya aplica el esquema globalmente. Aquí afinamos apps específicas
-  # que no teman por GTK/Qt.
+  # ============ THEMES DE USUARIO ============
+  # NOTA: Stylix ya se encarga de GTK, Qt, iconos, cursores y fuentes de forma
+  # global (ver modules/stylix.nix). Aquí NO duplicamos esas opciones porque
+  # entrarían en conflicto con Stylix. Solo añadimos lo que Stylix no cubre.
 
-  # GTK
-  gtk = {
-    enable = true;
-    iconTheme = {
-      package = pkgs.papirus-icon-theme;
-      name = "Papirus-Dark";
-    };
-    cursorTheme = {
-      package = pkgs.bibata-cursors;
-      name = "Bibata-Modern-Classic";
-      size = 24;
-    };
+  # Cursores extra (por si Stylix no los aplica en COSMIC)
+  home.pointerCursor = {
+    name = "Bibata-Modern-Classic";
+    package = pkgs.bibata-cursors;
+    size = 24;
+    gtk.enable = true;
   };
 
-  # Qt (apps Qt como las de COSMIC o VSCode)
-  qt = {
-    enable = true;
-    platformTheme.name = "gtk3";  # usar tema GTK → coherente con el resto
-    style.name = "adwaita-dark";
-  };
-
-  # Kitty/ghostty ya temado por Stylix. Nvim lo temamos en nvim.nix.
-
-  # Fondo de pantalla (cambia esta ruta por una imagen tuya si quieres)
-  # Se usa el de Stylix (generado del esquema) por defecto.
+  # Nvim se temática con tokyonight.nvim (ver nvim/init.lua).
+  # Ghostty y Zen heredan el esquema de Stylix automáticamente.
 }
