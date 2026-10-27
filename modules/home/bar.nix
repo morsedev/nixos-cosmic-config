@@ -132,8 +132,9 @@ in
 
       # Volumen: icono + porcentaje (el icono cambia con el nivel)
       pulseaudio = {
-        format = "${ico.volUp}  {volume}%";
-        format-muted = "${ico.mute}  {volume}%";
+        # Tres espacios: con dos, el icono y el número se veían pegados.
+        format = "${ico.volUp}   {volume}%";
+        format-muted = "${ico.mute}   {volume}%";
         format-icons = {
           # bajo / medio / alto  (Font Awesome: volume-down / up)
           default = [ ico.volDown ico.volDown ico.volUp ];
@@ -157,9 +158,9 @@ in
       # Batería
       battery = {
         states = { warning = 25; critical = 10; };
-        format = "{icon}  {capacity}%";
-        format-charging = "${ico.bolt}  {capacity}%";
-        format-plugged = "${ico.bolt}  {capacity}%";
+        format = "{icon}   {capacity}%";
+        format-charging = "${ico.bolt}   {capacity}%";
+        format-plugged = "${ico.bolt}   {capacity}%";
         # vacía / 1/4 / 1/2 / 3/4 / llena
         format-icons = [
           ico.batEmpty ico.batQuarter ico.batHalf ico.batThreeQuarter ico.batFull
@@ -269,10 +270,10 @@ in
       #pulseaudio,
       #network,
       #battery {
-        padding: 0 8px;
+        padding: 0 10px;
         margin: 0 2px;
         color: #c0caf5;
-        min-width: 34px;
+        min-width: 46px;
       }
       #pulseaudio.muted { color: #565f89; }
       #network.disconnected { color: #565f89; }
