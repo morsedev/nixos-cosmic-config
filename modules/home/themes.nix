@@ -99,6 +99,8 @@
          definen, libadwaita usa las del tema claro y el sidebar se ve BLANCO
          al desenfocar (era el fallo del panel de ajustes). */
       @define-color sidebar_backdrop_bg_color #16161e;
+      @define-color window_backdrop_bg_color #1a1b26;
+      @define-color headerbar_backdrop_color #16161e;
       @define-color sidebar_backdrop_fg_color #565f89;
       @define-color sidebar_shade_color #0f1017;
       @define-color second_sidebar_bg_color #16161e;
@@ -145,6 +147,31 @@
       }
       window:backdrop list.navigation-sidebar row,
       window:backdrop .navigation-sidebar row { color: #a9b1d6 !important; }
+
+      /* AdwNavigationSplitView (Ajustes, etc.): los paneles usan variables
+         propias y en "backdrop" se iban a los colores del tema CLARO.
+         Forzamos ambos paneles en todos los estados. */
+      .sidebar-pane,
+      .content-pane,
+      .navigation-split-view,
+      .overlay-split-view,
+      window:backdrop .sidebar-pane,
+      window:backdrop .content-pane,
+      window:backdrop .navigation-split-view,
+      window:backdrop .overlay-split-view {
+        background-color: #16161e !important;
+        background-image: none !important;
+        color: #c0caf5 !important;
+      }
+      window:backdrop {
+        background-color: #1a1b26 !important;
+        color: #c0caf5 !important;
+      }
+      window:backdrop headerbar,
+      window:backdrop .titlebar {
+        background-color: #16161e !important;
+        color: #c0caf5 !important;
+      }
     '';
 
     # Lo mismo para apps GTK4 (Nautilus nuevo, diálogos modernos...).
