@@ -42,8 +42,8 @@
     # Perfil "seguro" del sistema: audio, bluetooth, fuentes, portales.
     ./system-profile.nix
 
-    # Escritorio COSMIC (con tiling).
-    ./cosmic.nix
+    # Escritorio Hyprland (tiling) + login + paquetes del ricing.
+    ./hyprland.nix
 
     # Herramientas de desarrollo (Rust, Flutter/Dart, Python, Docker...).
     ./development.nix

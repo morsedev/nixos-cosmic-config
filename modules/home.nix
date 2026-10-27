@@ -34,6 +34,9 @@
     (import ./home/browser.nix { inherit inputs; })
 
     # Terminal Ghostty + Yazi.
+    ./home/hyprland.nix
+    ./home/bar.nix
+
     ./home/terminal.nix
 
     # Gestor de archivos (Nautilus + Yazi).
