@@ -108,19 +108,35 @@
           }
 
           /* Marca de agua 東京 (muy sutil) */
-          .outer-wrapper::after {
+          body::after {
             content: "東京";
             position: fixed;
             right: 5vw;
             bottom: 3vh;
             font-size: 14vw;
             line-height: 1;
-            color: rgba(187, 154, 247, 0.055);
+            color: rgba(187, 154, 247, 0.085);
             pointer-events: none;
           }
 
           /* Sin logo ni textos de bienvenida de Firefox */
           .logo-and-wordmark { display: none !important; }
+
+          /* Sin tarjeta del tiempo (contenido patrocinado) ni botón de editar */
+          .weather,
+          .weather-button,
+          .weather-sponsored,
+          [class*="weather"],
+          .customize-button,
+          .click-target-container { display: none !important; }
+
+          /* Títulos de accesos directos en una sola línea */
+          .top-site-outer .title,
+          .top-site-outer .title span {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+          }
 
           /* Caja de búsqueda */
           .search-wrapper .search-handoff-button,
@@ -242,6 +258,8 @@
         #stop-button,
         #star-button-box,
         #identity-box,
+        .identity-box,
+        #urlbar .identity-box,
         #tracking-protection-icon-container,
         #page-action-buttons,
         #fxa-toolbar-menu-button,
