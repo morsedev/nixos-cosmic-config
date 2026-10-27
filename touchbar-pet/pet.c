@@ -249,11 +249,31 @@ struct panel {
     size_t size;
 };
 
+static int add_prop(int fd, drmModeAtomicReq *req, uint32_t obj,
+                    uint32_t obj_type, const char *name, uint64_t value) {
+    drmModeObjectProperties *props = drmModeObjectGetProperties(fd, obj, obj_type);
+    if (!props) return -1;
+    int rc = -1;
+    for (uint32_t i = 0; i < props->count_props; i++) {
+        drmModePropertyRes *pr = drmModeGetProperty(fd, props->props[i]);
+        if (!pr) continue;
+        if (strcmp(pr->name, name) == 0) {
+            rc = drmModeAtomicAddProperty(req, obj, pr->prop_id, value) < 0 ? -1 : 0;
+            drmModeFreeProperty(pr);
+            break;
+        }
+        drmModeFreeProperty(pr);
+    }
+    drmModeFreeObjectProperties(props);
+    return rc;
+}
+
+/* Abre el panel con un commit ATÓMICO, que es lo único que acepta
+   appletbdrm (el mismo camino que usa tiny-dfr). */
 static int open_panel(struct panel *p) {
     DIR *d = opendir("/dev/dri");
     if (!d) return -1;
     struct dirent *e;
-    int found = -1;
 
     while ((e = readdir(d))) {
         if (strncmp(e->d_name, "card", 4) != 0) continue;
@@ -263,65 +283,119 @@ static int open_panel(struct panel *p) {
         int fd = open(path, O_RDWR);
         if (fd < 0) continue;
 
+        drmSetClientCap(fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+        drmSetClientCap(fd, DRM_CLIENT_CAP_ATOMIC, 1);
+
         drmModeRes *res = drmModeGetResources(fd);
         if (!res) { close(fd); continue; }
 
-        for (int i = 0; i < res->count_connectors && found < 0; i++) {
+        for (int i = 0; i < res->count_connectors; i++) {
             drmModeConnector *c = drmModeGetConnector(fd, res->connectors[i]);
             if (!c) continue;
-            /* El panel de la Touch Bar es muy alto y estrecho. */
-            if (c->connection == DRM_MODE_CONNECTED && c->count_modes > 0) {
-                drmModeModeInfo *m = &c->modes[0];
-                if (m->vdisplay / m->hdisplay >= 30) {
-                    uint32_t crtc = (c->encoder_id) ? 0 : 0;
-                    /* buscar un CRTC válido */
-                    drmModeEncoder *enc = c->encoder_id ? drmModeGetEncoder(fd, c->encoder_id) : NULL;
-                    crtc = enc ? enc->crtc_id : (res->count_crtcs ? res->crtcs[0] : 0);
-                    if (enc) drmModeFreeEncoder(enc);
-
-                    struct drm_mode_create_dumb creq = {0};
-                    creq.width = 64;
-                    creq.height = m->vdisplay;
-                    creq.bpp = 32;
-                    if (ioctl(fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) == 0) {
-                        struct drm_mode_map_dumb mreq = {0};
-                        mreq.handle = creq.handle;
-                        if (ioctl(fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) == 0) {
-                            void *map = mmap(NULL, creq.size, PROT_READ | PROT_WRITE,
-                                             MAP_SHARED, fd, mreq.offset);
-                            uint32_t fb = 0;
-                            if (map != MAP_FAILED &&
-                                drmModeAddFB(fd, creq.width, creq.height, 24, 32,
-                                             creq.pitch, creq.handle, &fb) == 0) {
-                                if (drmModeSetCrtc(fd, crtc, fb, 0, 0, &c->connector_id, 1, m) == 0) {
-                                    p->fd = fd;
-                                    p->fb = fb;
-                                    p->handle = creq.handle;
-                                    p->pitch = creq.pitch;
-                                    p->height = creq.height;
-                                    p->map = map;
-                                    p->size = creq.size;
-                                    found = 0;
-                                    break;
-                                }
-                                drmModeRmFB(fd, fb);
-                            }
-                            munmap(map, creq.size);
-                        }
-                        struct drm_mode_destroy_dumb dreq = {0};
-                        dreq.handle = creq.handle;
-                        ioctl(fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
-                    }
-                }
+            if (c->connection != DRM_MODE_CONNECTED || c->count_modes == 0) {
+                drmModeFreeConnector(c);
+                continue;
             }
+            drmModeModeInfo *m = &c->modes[0];
+            if (m->vdisplay / m->hdisplay < 30) {   /* no es la Touch Bar */
+                drmModeFreeConnector(c);
+                continue;
+            }
+
+            uint32_t crtc = 0;
+            if (c->encoder_id) {
+                drmModeEncoder *enc = drmModeGetEncoder(fd, c->encoder_id);
+                if (enc) { crtc = enc->crtc_id; drmModeFreeEncoder(enc); }
+            }
+            if (!crtc && res->count_crtcs) crtc = res->crtcs[0];
+
+            drmModePlaneRes *pres = drmModeGetPlaneResources(fd);
+            if (!pres || pres->count_planes == 0) {
+                if (pres) drmModeFreePlaneResources(pres);
+                drmModeFreeConnector(c);
+                continue;
+            }
+            uint32_t plane = pres->planes[0];
+            drmModeFreePlaneResources(pres);
+
+            if (drmSetMaster(fd) != 0) {
+                fprintf(stderr, "%s: no se pudo ser DRM master (%s)\n", path, strerror(errno));
+                drmModeFreeConnector(c);
+                continue;
+            }
+
+            struct drm_mode_create_dumb creq = {0};
+            creq.width = 64;
+            creq.height = m->vdisplay;
+            creq.bpp = 32;
+            if (ioctl(fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) != 0) {
+                drmDropMaster(fd); drmModeFreeConnector(c); continue;
+            }
+
+            struct drm_mode_map_dumb mreq = {0};
+            mreq.handle = creq.handle;
+            if (ioctl(fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) != 0) {
+                drmDropMaster(fd); drmModeFreeConnector(c); continue;
+            }
+
+            void *map = mmap(NULL, creq.size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, mreq.offset);
+            if (map == MAP_FAILED) { drmDropMaster(fd); drmModeFreeConnector(c); continue; }
+
+            uint32_t fb = 0;
+            if (drmModeAddFB(fd, creq.width, creq.height, 24, 32, creq.pitch, creq.handle, &fb) != 0) {
+                munmap(map, creq.size); drmDropMaster(fd); drmModeFreeConnector(c); continue;
+            }
+
+            drmModeAtomicReq *req = drmModeAtomicAlloc();
+            uint32_t blob = 0;
+            if (drmModeCreatePropertyBlob(fd, m, sizeof(*m), &blob) != 0) blob = 0;
+
+            int ok = 1;
+            ok &= (add_prop(fd, req, c->connector_id, DRM_MODE_OBJECT_CONNECTOR, "CRTC_ID", crtc) == 0);
+            if (blob)
+                ok &= (add_prop(fd, req, crtc, DRM_MODE_OBJECT_CRTC, "MODE_ID", blob) == 0);
+            ok &= (add_prop(fd, req, crtc, DRM_MODE_OBJECT_CRTC, "ACTIVE", 1) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "FB_ID", fb) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "CRTC_ID", crtc) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "SRC_X", 0) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "SRC_Y", 0) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "SRC_W", (uint64_t)m->hdisplay << 16) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "SRC_H", (uint64_t)m->vdisplay << 16) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "CRTC_X", 0) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "CRTC_Y", 0) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "CRTC_W", (uint64_t)m->hdisplay) == 0);
+            ok &= (add_prop(fd, req, plane, DRM_MODE_OBJECT_PLANE, "CRTC_H", (uint64_t)m->vdisplay) == 0);
+
+            int rc = -1;
+            if (ok)
+                rc = drmModeAtomicCommit(fd, req, DRM_MODE_ATOMIC_ALLOW_MODESET, NULL);
+            drmModeAtomicFree(req);
+
+            if (rc == 0) {
+                p->fd = fd;
+                p->fb = fb;
+                p->handle = creq.handle;
+                p->pitch = creq.pitch;
+                p->height = creq.height;
+                p->map = map;
+                p->size = creq.size;
+                drmModeFreeConnector(c);
+                drmModeFreeResources(res);
+                closedir(d);
+                return 0;
+            }
+
+            fprintf(stderr, "commit falló en %s: %s\n", path, strerror(errno));
+            drmModeRmFB(fd, fb);
+            munmap(map, creq.size);
+            drmDropMaster(fd);
             drmModeFreeConnector(c);
         }
         drmModeFreeResources(res);
-        if (found == 0) break;
         close(fd);
     }
     closedir(d);
-    return found;
+    return -1;
 }
 
 /* Vuelca el lienzo horizontal (W x H) al búfer vertical del panel.
