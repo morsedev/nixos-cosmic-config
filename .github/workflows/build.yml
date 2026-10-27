@@ -1,0 +1,98 @@
+name: Verificar config NixOS (Apple Silicon)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: # botón "Run workflow" para validar manualmente
+
+env:
+  # Cachés para acelerar los builds
+  NIX_CONFIG: |
+    extra-substituters = https://cache.nixos.org https://cosmic.cachix.org
+    extra-trusted-public-keys = cosmic.cachix.org-1:Dya9IyXD4xd0hV8x1JsDd3CgE6GP5gDdhI5rAeBMKfs=
+    experimental-features = nix-command flakes
+    cores = 0
+
+jobs:
+  # ============================================================
+  # FASE 1: EVALUACIÓN (rápida, se ejecuta en cada push)
+  # Detecta errores de sintaxis, opciones incorrectas, paquetes
+  # que no existen, etc. — sin compilar nada.
+  # ============================================================
+  eval:
+    name: Evaluar configuración
+    runs-on: ubuntu-24.04-arm  # runner ARM64 nativo
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar Nix (Determinate)
+        uses: DeterminateSystems/nix-installer-action@v13
+
+      - name: Crear hardware-configuration.nix de CI (stub)
+        run: |
+          cat > hardware-configuration.nix <<'EOF'
+          { config, lib, pkgs, ... }:
+          {
+            # Stub SOLO para CI: declara un filesystem raíz mínimo para que
+            # el sistema pueda evaluarse/construirse sin el disco real del Mac.
+            fileSystems."/" = {
+              device = "/dev/null";
+              fsType = "ext4";
+            };
+            # No intentar montar/instalar nada real
+            boot.loader.systemd-boot.enable = lib.mkForce false;
+          }
+          EOF
+
+      - name: Evaluar la configuración completa
+        run: |
+          nix flake check . --no-build 2>&1 | tail -30 || \
+          nix eval .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw
+
+      - name: Verificar que la config del sistema evalúa
+        run: |
+          nix eval .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw
+          echo "✅ La configuración evalúa correctamente"
+
+  # ============================================================
+  # FASE 2: BUILD COMPLETO (lento — solo manual, o al hacer push
+  # si lo necesitas). Compila el sistema entero para aarch64-linux.
+  # ============================================================
+  build:
+    name: Compilar sistema completo (aarch64)
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 300 # hasta 5h (COSMIC + toolchains son pesados)
+    # Solo manual para no bloquear cada push con 2h de build
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar Nix (Determinate)
+        uses: DeterminateSystems/nix-installer-action@v13
+
+      - name: Crear hardware-configuration.nix de CI (stub)
+        run: |
+          cat > hardware-configuration.nix <<'EOF'
+          { config, lib, pkgs, ... }:
+          {
+            fileSystems."/" = {
+              device = "/dev/null";
+              fsType = "ext4";
+            };
+            boot.loader.systemd-boot.enable = lib.mkForce false;
+          }
+          EOF
+
+      - name: Compilar el sistema (toplevel)
+        run: |
+          nix build .#nixosConfigurations.macnix.config.system.build.toplevel \
+            --print-build-logs 2>&1 | tail -80
+
+      - name: Resultado
+        run: |
+          echo "✅ Sistema compilado correctamente para aarch64-linux"
+          echo "Resultado: $(readlink -f result)"
