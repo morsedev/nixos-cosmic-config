@@ -25,14 +25,6 @@
     # Fuerza modo oscuro.
     polarity = "dark";
 
-    # Cursor del sistema (GTK + apps X11/Wayland). El cursor por defecto de
-    # Adwaita es lo primero que delata un escritorio sin personalizar.
-    cursor = {
-      package = pkgs.bibata-cursors;
-      name = "Bibata-Modern-Ice";
-      size = 24;
-    };
-
     # -------------------------------------------------------------------------
     # FUENTES
     # -------------------------------------------------------------------------

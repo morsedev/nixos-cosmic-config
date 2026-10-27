@@ -13,8 +13,11 @@
 
 {
   # `home.pointerCursor` define el cursor del ratón para este usuario.
+  # Bibata "Ice" es la variante clara/azulada: encaja mejor con Tokyo Night
+  # que la "Classic" (negra). El nombre debe coincidir con el que usa
+  # `hyprctl setcursor` en modules/home/hyprland.nix.
   home.pointerCursor = {
-    name = "Bibata-Modern-Classic";  # nombre del tema de cursor
+    name = "Bibata-Modern-Ice";      # nombre del tema de cursor
     package = pkgs.bibata-cursors;   # paquete que lo contiene
     size = 24;                       # tamaño en píxeles
     gtk.enable = true;               # aplicarlo también en apps GTK
