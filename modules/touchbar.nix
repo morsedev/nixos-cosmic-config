@@ -201,5 +201,38 @@ in
           ;;
       esac
     '')
+    # Convertir cualquier imagen en sprite de la Touch Bar
+    pkgs.imagemagick
+
+    (pkgs.writeShellScriptBin "touchbar-sprite" ''
+      set -euo pipefail
+      if [ $# -lt 1 ]; then
+        echo "uso: touchbar-sprite <imagen>"
+        echo "  Convierte cualquier PNG/JPG/GIF (un fotograma) en el sprite"
+        echo "  que dibuja touchbar-pet. Ejemplo:"
+        echo "    touchbar-sprite ~/gato.png"
+        exit 1
+      fi
+
+      src="$1"
+      [ -f "$src" ] || { echo "no existe: $src"; exit 1; }
+
+      tmp="$(mktemp --suffix=.ppm)"
+      # 56 px de alto como máximo, 900 de ancho como máximo (deja sitio al reloj)
+      if command -v magick >/dev/null 2>&1; then
+        magick "$src" -background '#16161e' -alpha remove -alpha off \
+               -resize '900x56>' -depth 8 "ppm:$tmp"
+      else
+        convert "$src" -background '#16161e' -alpha remove -alpha off \
+                -resize '900x56>' -depth 8 "$tmp"
+      fi
+
+      sudo mkdir -p /etc/touchbar-pet
+      sudo install -m 0644 "$tmp" /etc/touchbar-pet/sprite.ppm
+      rm -f "$tmp"
+      sudo systemctl restart touchbar-pet 2>/dev/null || true
+      notify-send -a "Touch Bar" "Sprite actualizado" "$(basename "$src")" 2>/dev/null || true
+    '')
+
   ];
 }

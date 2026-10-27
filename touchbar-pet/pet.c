@@ -230,12 +230,60 @@ static void snowflake(int cx, int cy, int r, uint32_t c) {
 }
 
 /* ------------------------------------------------------------------------- */
+/*  Sprite opcional: /etc/touchbar-pet/sprite.ppm                             */
+/*  Si existe, se dibuja en lugar del gato vectorial. Sirve para usar        */
+/*  cualquier imagen (p. ej. un fotograma de un GIF de un gato tecleando).   */
+/* ------------------------------------------------------------------------- */
+static uint8_t *sprite = NULL;
+static int sprite_w = 0, sprite_h = 0;
+
+static void load_sprite(void) {
+    FILE *f = fopen("/etc/touchbar-pet/sprite.ppm", "rb");
+    if (!f) return;
+    char magic[3] = {0};
+    int w = 0, h = 0, max = 0;
+    if (fscanf(f, "%2s %d %d %d", magic, &w, &h, &max) != 4 || strcmp(magic, "P6") != 0) {
+        fclose(f);
+        return;
+    }
+    fgetc(f);  /* un único espacio tras el máximo */
+    size_t n = (size_t)w * h * 3;
+    uint8_t *buf = malloc(n);
+    if (!buf || fread(buf, 1, n, f) != n) {
+        free(buf);
+        fclose(f);
+        return;
+    }
+    fclose(f);
+    sprite = buf;
+    sprite_w = w;
+    sprite_h = h;
+    fprintf(stderr, "sprite %dx%d cargado\n", w, h);
+}
+
+static void draw_sprite(int x0, int y0) {
+    if (!sprite) return;
+    for (int y = 0; y < sprite_h; y++) {
+        for (int x = 0; x < sprite_w; x++) {
+            uint8_t *p = sprite + ((size_t)y * sprite_w + x) * 3;
+            uint32_t c = ((uint32_t)p[0] << 16) | ((uint32_t)p[1] << 8) | p[2];
+            px(x0 + x, y0 + y, c);
+        }
+    }
+}
+
+/* ------------------------------------------------------------------------- */
 static void draw_frame(int paw, int blink, int battery) {
     fill(0, 0, W, H, BG);
     fill(0, 0, W, 1, BORDER);
     fill(0, H - 1, W, 1, BORDER);
 
-    draw_cat(230, paw, blink);
+    if (sprite) {
+        /* centrado vertical, a la izquierda */
+        draw_sprite(60, (H - sprite_h) / 2);
+    } else {
+        draw_cat(230, paw, blink);
+    }
 
     draw_time(1010, 30, 30, blink);
 
@@ -524,6 +572,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "panel %ux%u, pitch %u\n", 64, p.height, p.pitch);
 
     backlight_on();
+    load_sprite();
     open_inputs();
     fprintf(stderr, "%d dispositivos de entrada\n", in_n);
 
