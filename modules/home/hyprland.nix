@@ -204,6 +204,14 @@ in
         disable_splash_rendering = true;
       };
 
+      # --- Reglas de VENTANA ---
+      # gnome-control-center usa libadwaita y en estado "sin foco" (backdrop)
+      # el sidebar dejaba ver el fondo a través (parecía blanco). Lo forzamos
+      # opaco para que no se transparente nunca.
+      windowrule = [
+        "opacity 1.0 1.0, match:class gnome-control-center"
+      ];
+
       # --- Reglas de CAPAS (waybar, walker, swaync) ---
       # `blur <namespace>` difumina lo que hay DETRÁS de esa capa.
       # Así los paneles translúcidos se ven "de cristal" sobre el wallpaper.

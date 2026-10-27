@@ -95,6 +95,14 @@
       @define-color headerbar_border_color #292e42;
       @define-color sidebar_bg_color #16161e;
       @define-color sidebar_fg_color #a9b1d6;
+      /* Estado "backdrop" = ventana SIN foco. Si estas variables no se
+         definen, libadwaita usa las del tema claro y el sidebar se ve BLANCO
+         al desenfocar (era el fallo del panel de ajustes). */
+      @define-color sidebar_backdrop_bg_color #16161e;
+      @define-color sidebar_backdrop_fg_color #565f89;
+      @define-color sidebar_shade_color #0f1017;
+      @define-color second_sidebar_bg_color #16161e;
+      @define-color second_sidebar_backdrop_bg_color #16161e;
       @define-color card_bg_color #1f2335;
       @define-color card_fg_color #c0caf5;
       @define-color popover_bg_color #1f2335;
@@ -110,6 +118,19 @@
       button:not(.suggested-action):not(.destructive-action):hover {
         background: #292e42;
       }
+
+      /* Sidebar de navegación (Ajustes, Nautilus, etc.) siempre oscuro,
+         también cuando la ventana pierde el foco. */
+      .navigation-sidebar,
+      list.navigation-sidebar,
+      .sidebar-panel,
+      window:backdrop .navigation-sidebar,
+      window:backdrop list.navigation-sidebar {
+        background-color: #16161e !important;
+        color: #a9b1d6 !important;
+      }
+      window:backdrop list.navigation-sidebar row,
+      window:backdrop .navigation-sidebar row { color: #a9b1d6 !important; }
     '';
 
     # Lo mismo para apps GTK4 (Nautilus nuevo, diálogos modernos...).
