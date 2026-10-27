@@ -101,7 +101,6 @@
       };
 
       dwindle = {
-        pseudotile = true;
         preserve_split = true;
       };
       master.new_status = "master";
@@ -132,7 +131,6 @@
         "$mod, F, fullscreen,"
         "$mod, V, togglefloating,"
         "$mod, P, pseudo,"
-        "$mod, J, togglesplit,"
 
         # Bloqueo y capturas
         "$mod, L, exec, hyprlock"
@@ -174,8 +172,6 @@
         "$mod, mouse_down, workspace, e+1"
         "$mod, mouse_up, workspace, e-1"
 
-        # Redimensionar con ratón (Super + botón derecho)
-        "$mod, mouse:273, resizewindow"
 
         # Multimedia (teclas del Mac)
         ", XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
@@ -194,21 +190,7 @@
         "$mod, mouse:273, resizewindow"
       ];
 
-      # --- Reglas de ventanas ---
-      windowrule = [
-        "float, class:^(pavucontrol)$"
-        "float, class:^(nm-connection-editor)$"
-        "float, class:^(blueman-manager)$"
-        "float, title:^(Picture-in-Picture)$"
-        "opacity 0.95 0.90, class:^(ghostty)$"
-        "size 900 600, class:^(pavucontrol)$"
-      ];
 
-      # Capa de la barra (waybar) reservando espacio arriba
-      layerrule = [
-        "blur, waybar"
-        "ignorezero, waybar"
-      ];
     };
   };
 }
