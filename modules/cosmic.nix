@@ -6,40 +6,18 @@
   # Pulsa Super+T para alternar tiling ↔ floating.
   services.desktopManager.cosmic = {
     enable = true;
-    # XWayland para apps que aún no son Wayland nativas
     xwayland.enable = true;
   };
 
-  # COSMIC trae su propio greeter (pantalla de login)
+  # Greeter propio de COSMIC
   services.displayManager.cosmic-greeter.enable = true;
-
-  # ============ FONT (para terminales, editor, etc.) ============
-  fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.fira-code
-    noto-fonts
-    noto-fonts-color-emoji
-    inter
-    liberation_ttf
-  ];
 
   # ============ APPS GRÁFICAS EXTRA ============
   environment.systemPackages = with pkgs; [
-    # COSMIC Files ya viene con el escritorio, pero añadimos extras
-    nautilus            # navegador de archivos GNOME (elegido)
+    nautilus            # navegador de archivos GNOME
     file-roller         # compresor de archivos
     loupe               # visor de imágenes
     pavucontrol         # control de volumen
     networkmanagerapplet
   ];
-
-  # ============ PORTALES XDG ============
-  xdg.portal = {
-    enable = true;
-    # COSMIC usa su propio portal por defecto; dejamos el extra GTK para compat.
-    extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
-  };
-
-  # ============ GESTIÓN DE USUARIOS GRÁFICA ============
-  programs.dconf.enable = true;
 }

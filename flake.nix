@@ -1,5 +1,5 @@
 {
-  description = "NixOS custom config para MacBook Air M2 (Apple Silicon) — COSMIC + Neovim IDE";
+  description = "NixOS custom para MacBook Air M2 (Apple Silicon) — COSMIC + NixVim (módulos tipo nixarchy)";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -9,53 +9,64 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Theming homogéneo (Tokyo Night en todas las apps)
     stylix = {
       url = "github:danth/stylix/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Navegador Zen Browser (configurable al máximo, temas integrados)
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
 
-    # Neovim declarativo (IDE completo, estilo kickstart)
     nixvim = {
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # ============ APPLE SILICON ============
-    # Soporte Asahi (kernel, U-Boot, GPU, firmware) importado como input,
-    # en vez del directorio local ./apple-silicon-support.
     apple-silicon = {
       url = "github:nix-community/nixos-apple-silicon/release-2026-07-30";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, stylix, zen-browser, apple-silicon, ... }@inputs: {
+  outputs = { self, nixpkgs, home-manager, ... }@inputs: {
+
+    # ============================================================
+    # MÓDULOS (como nixarchy) — esto es lo que se importa desde
+    # el flake del usuario. Basta con cambiar `nixarchy.url`.
+    # ============================================================
+    nixosModules = {
+      default = import ./modules/nixos.nix { inherit inputs; };
+      nixarchy = self.nixosModules.default;
+    };
+
+    homeModules = {
+      default = import ./modules/home.nix { inherit inputs; };
+      nixarchy = self.homeModules.default;
+    };
+
+    # Alias con el nombre que usa nixarchy
+    homeManagerModules = {
+      default = self.homeModules.default;
+      nixarchy = self.homeModules.default;
+    };
+
+    # ============================================================
+    # CONFIGURACIÓN COMPLETA (para CI y para usar el repo tal cual)
+    # ============================================================
     nixosConfigurations.macnix = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
-      specialArgs = { inherit inputs zen-browser apple-silicon; };
+      specialArgs = { inherit inputs; };
 
       modules = [
-        # ============ APPLE SILICON ============
-        # Importa el módulo de soporte Apple Silicon desde el input
-        apple-silicon.nixosModules.apple-silicon-support
-
-        # ============ CONFIG PRINCIPAL ============
         ./configuration.nix
+        inputs.apple-silicon.nixosModules.apple-silicon-support
+        self.nixosModules.default
 
-        # ============ THEMING ============
-        stylix.nixosModules.stylix
-
-        # ============ HOME MANAGER ============
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          # Pasar los inputs a los módulos de usuario (para Stylix HM, Zen, etc.)
           home-manager.extraSpecialArgs = { inherit inputs; };
+          home-manager.users.macnix.imports = [ self.homeModules.default ];
         }
       ];
     };

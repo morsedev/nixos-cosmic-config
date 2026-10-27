@@ -1,4 +1,5 @@
-{ config, pkgs, lib, inputs, ... }:
+inputs:
+{ config, pkgs, lib, ... }:
 
 {
   # ============ ZEN BROWSER ============
