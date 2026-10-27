@@ -101,6 +101,8 @@ SECTIONS = [
         ("movefocus", "r", "Foco a la derecha"),
         ("movefocus", "u", "Foco arriba"),
         ("movefocus", "d", "Foco abajo"),
+        ("workspace", "e+1", "Workspace siguiente"),
+        ("workspace", "e-1", "Workspace anterior"),
     ]),
     ("CAPTURAS Y BLOQUEO", [
         ("exec", "hyprlock", "Bloquear la pantalla"),
