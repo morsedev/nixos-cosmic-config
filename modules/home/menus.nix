@@ -127,3 +127,48 @@
     '')
   ];
 }
+
+  # ---------------------------------------------------------------------------
+  # AJUSTES DEL SISTEMA  (Super + I)
+  # ---------------------------------------------------------------------------
+  # gnome-control-center da las mismas secciones que COSMIC Settings (fecha y
+  # hora, zona horaria, red, bluetooth, sonido, energía...). Aquí se agrupan en
+  # un menú para llegar rápido a cada una.
+  home.packages = home.packages ++ [
+    pkgs.gnome-control-center
+
+    (pkgs.writeShellScriptBin "settings" ''
+      set -uo pipefail
+
+      choice="$(printf '%s\n' \
+        "󰃰  Fecha y hora" \
+        "󰖟  Red (Wi-Fi)" \
+        "󰂯  Bluetooth" \
+        "󰕾  Sonido" \
+        "󰍹  Pantalla" \
+        "󰚥  Energía y batería" \
+        "󰌌  Teclado" \
+        "󰍽  Ratón y touchpad" \
+        "󰗽  Usuarios" \
+        "󰗊  Región e idioma" \
+        "󰃣  Apariencia" \
+        "󰒓  Todos los ajustes" \
+        | wofi --dmenu --dynamic-lines --prompt 'Ajustes' --width 460 --height 470)"
+
+      case "$choice" in
+        "")                    exit 0 ;;
+        *"Fecha y hora")       exec gnome-control-center datetime ;;
+        *"Red")                exec gnome-control-center wifi ;;
+        *Bluetooth)            exec gnome-control-center bluetooth ;;
+        *Sonido)               exec gnome-control-center sound ;;
+        *Pantalla)             exec gnome-control-center display ;;
+        *"Energía")            exec gnome-control-center power ;;
+        *Teclado)              exec gnome-control-center keyboard ;;
+        *"Ratón")              exec gnome-control-center mouse ;;
+        *Usuarios)             exec gnome-control-center user-accounts ;;
+        *"Región")             exec gnome-control-center region ;;
+        *Apariencia)           exec gnome-control-center appearance ;;
+        *)                     exec gnome-control-center ;;
+      esac
+    '')
+  ];

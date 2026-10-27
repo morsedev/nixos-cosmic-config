@@ -113,6 +113,7 @@ SECTIONS = [
         ("exec", "wifi", "Menú de Wi-Fi"),
         ("exec", "bluetooth", "Menú de Bluetooth"),
         ("exec", "pwvucontrol", "Volumen y audio"),
+        ("exec", "settings", "Ajustes del sistema"),
     ]),
     ("ESCRITORIO", [
         ("exec", "wallpaper next", "Siguiente fondo de pantalla"),

@@ -79,9 +79,11 @@
       # resplandores azul/morado, oculta el logo de Firefox y estiliza la caja
       # de búsqueda y los accesos directos.
       userContent = ''
-        @-moz-document url("about:newtab"),
-                       url("about:home"),
-                       url("about:privatebrowsing") {
+        /* OJO: la página nueva lleva parámetros en la URL, así que hay que
+           usar url-prefix() y no url() para que el CSS se aplique. */
+        @-moz-document url-prefix("about:newtab"),
+                       url-prefix("about:home"),
+                       url-prefix("about:privatebrowsing") {
 
           :root {
             --tn-bg:     #1a1b26;

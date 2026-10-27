@@ -266,6 +266,7 @@ in
         "$mod, N, exec, wifi"
         "$mod, B, exec, bluetooth"
         "$mod, A, exec, pwvucontrol"
+        "$mod, I, exec, settings"
 
         # Fondos de pantalla
         "$mod, W, exec, ${lib.getExe wallpaper} next"
