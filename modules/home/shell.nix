@@ -132,6 +132,19 @@
   };
 
   # ---------------------------------------------------------------------------
+  # BASH (respaldo)
+  # ---------------------------------------------------------------------------
+  # El shell de login de esta máquina es zsh (se configura en el sistema), pero
+  # si alguna vez se abre bash, que al menos tenga el mismo prompt y no el
+  # feo prompt por defecto de la distro.
+  programs.bash = {
+    enable = true;
+    initExtra = ''
+      eval "$(starship init bash)"
+    '';
+  };
+
+  # ---------------------------------------------------------------------------
   # ZOXIDE
   # ---------------------------------------------------------------------------
   # `z nombre-carpeta` te lleva a una carpeta que ya visitaste antes

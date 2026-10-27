@@ -126,6 +126,28 @@ SECTIONS = [
     ]),
 ]
 
+# Atajos del NAVEGADOR (no son de Hyprland, se listan a mano).
+BROWSER = [
+    ("Ctrl + L", "Barra de direcciones"),
+    ("Ctrl + T", "Nueva pestaña"),
+    ("Ctrl + W", "Cerrar pestaña"),
+    ("Ctrl + Shift + T", "Reabrir pestaña cerrada"),
+    ("Ctrl + Tab", "Siguiente pestaña"),
+    ("Ctrl + Shift + Tab", "Pestaña anterior"),
+    ("Ctrl + 1 … 9", "Ir a la pestaña N (9 = última)"),
+    ("Alt + ← / →", "Atrás / adelante"),
+    ("Ctrl + R", "Recargar"),
+    ("Ctrl + Shift + R", "Recargar sin caché"),
+    ("Ctrl + F", "Buscar en la página"),
+    ("Ctrl + D", "Añadir a marcadores"),
+    ("Ctrl + J", "Descargas"),
+    ("Ctrl + H", "Historial"),
+    ("Ctrl + Shift + P", "Ventana privada"),
+    ("Ctrl + 0 / + / -", "Zoom normal / acercar / alejar"),
+    ("F11", "Pantalla completa"),
+    ("Ctrl + Shift + I", "Herramientas de desarrollo"),
+]
+
 # Workspaces: se muestran como rango "Super + 1 … 9".
 WORKSPACE_ROWS = [
     ("workspace", "Ir al workspace {}"),
@@ -284,6 +306,12 @@ def main():
             )
             label = key_label(bind)
             print("    " + GREEN + label.ljust(width) + RESET + FG + text + RESET)
+
+    if BROWSER:
+        print()
+        print("  " + BOLD + PURPLE + "NAVEGADOR (Zen)" + RESET)
+        for label, desc in BROWSER:
+            print("    " + GREEN + label.ljust(width) + RESET + FG + desc + RESET)
 
     print()
     print("  " + DIM + "Cierra esta ventana o pulsa Enter para salir." + RESET)
