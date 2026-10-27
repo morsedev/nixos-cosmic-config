@@ -13,8 +13,9 @@
     rustfmt
 
     # --- Swift ---
-    swift                  # toolchain de Swift para Linux (aarch64)
-    sourcekit-lsp          # LSP oficial de Swift
+    # NOTA: pkgs.swift está marcado "broken" en aarch64-linux (nixpkgs).
+    # Instala el toolchain oficial de Swift para Linux ARM desde swift.org
+    # (tarball) o usa un contenedor. Ver README > Swift.
 
     # --- Flutter / Dart ---
     flutter                # SDK de Flutter (incluye Dart)

@@ -138,11 +138,8 @@
           bashls.enable = true;
           yamlls.enable = true;
           jsonls.enable = true;
-          # Swift
-          sourcekit = {
-            enable = true;
-            package = pkgs.sourcekit-lsp;
-          };
+          # Swift: sourcekit LSP no disponible en aarch64 (swift roto en nixpkgs).
+          # Se configura aparte si instalas el toolchain oficial de swift.org.
           # Flutter / Dart
           dartls = {
             enable = true;
