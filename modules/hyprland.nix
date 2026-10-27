@@ -140,8 +140,10 @@
       # El brillo sigue al de la pantalla, con un máximo más alto para que se vea.
       AdaptiveBrightness = true;
       ActiveBrightness = 200;
-      # Doble pulsación de Fn (200 ms) para cambiar entre capas.
-      DoublePressSwitchLayers = 200;
+      # 0 = desactivar el cambio de capa con doble pulsación de Fn.
+      # (Con esto la capa multimedia es siempre la que se ve; antes se quedaba
+      #  en la de F1–F12 tras una pulsación accidental de Fn.)
+      DoublePressSwitchLayers = 0;
 
       # Capa multimedia = la que se ve por defecto.
       MediaLayerKeys = [
