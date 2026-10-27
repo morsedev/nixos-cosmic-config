@@ -10,25 +10,29 @@
 
 { config, pkgs, lib, ... }:
 
-{
-  # ===========================================================================
+let
+  # ---------------------------------------------------------------------------
   # CHULETA DE ATAJOS  (Super + /)
-  # ===========================================================================
-  home.packages = [
-    # `hyprkeys` lee los atajos REALES del compositor (hyprctl -j binds) y los
-    # pinta agrupados en español. Al añadir un atajo nuevo aparece solo.
-    # `flakeIgnore` desactiva el aviso de "línea demasiado larga" (E501): el
-    # script tiene textos largos a propósito y se lee mejor así.
-    (pkgs.writers.writePython3Bin "hyprkeys" {
-      flakeIgnore = [ "E501" ];
-    } ./hyprkeys.py)
+  # ---------------------------------------------------------------------------
+  # `hyprkeys` lee los atajos REALES del compositor (hyprctl binds) y los pinta
+  # agrupados en español. Al añadir un atajo nuevo aparece solo.
+  # `flakeIgnore` desactiva el aviso de "línea demasiado larga" (E501): el
+  # script tiene textos largos a propósito y se lee mejor así.
+  hyprkeys = pkgs.writers.writePython3Bin "hyprkeys" {
+    flakeIgnore = [ "E501" ];
+  } ./hyprkeys.py;
 
-    # Abre la chuleta en una ventana flotante y centrada.
-    # El prefijo [float;center;size W H] es una "regla de ejecución" de Hyprland.
-    (pkgs.writeShellScriptBin "hyprkeys-open" ''
-      exec hyprctl dispatch exec '[float;center;size 1180 820] ghostty -e hyprkeys'
-    '')
-  ];
+  # Abre la chuleta en una ventana flotante y centrada.
+  # El prefijo [float;center;size W H] es una "regla de ejecución" de Hyprland.
+  # `lib.getExe` da la ruta absoluta del programa: así el atajo funciona aunque
+  # el PATH de la sesión no incluya el perfil del usuario.
+  hyprkeys-open = pkgs.writeShellScriptBin "hyprkeys-open" ''
+    exec hyprctl dispatch exec "[float;center;size 1180 820] ghostty -e ${lib.getExe hyprkeys}"
+  '';
+in
+{
+  # Los dos comandos quedan disponibles en la terminal.
+  home.packages = [ hyprkeys hyprkeys-open ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -197,7 +201,7 @@
         "$mod, C, exec, cliphist list | wofi --dmenu | cliphist decode | wl-copy"
 
         # Chuleta de atajos (ventana flotante)
-        "$mod, slash, exec, hyprkeys-open"
+        "$mod, slash, exec, ${lib.getExe hyprkeys-open}"
 
         # Mover el foco
         "$mod, left, movefocus, l"
