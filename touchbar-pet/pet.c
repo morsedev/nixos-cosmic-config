@@ -134,61 +134,77 @@ static void ear(int x, int base, int w, int h, uint32_t c) {
     }
 }
 
-static void draw_cat(int cx, int paw, int sway) {
-    /* teclado */
-    rounded(cx - 78, 44, 156, 12, 3, SURFACE);
-    for (int i = 0; i < 12; i++) {
-        int under_l = (i >= 2 && i <= 4);
-        int under_r = (i >= 7 && i <= 9);
+static void draw_cat(int cx, int paw, int blink) {
+    /* ---------- teclado (dos filas) ---------- */
+    rounded(cx - 74, 44, 148, 14, 3, SURFACE);
+    for (int i = 0; i < 10; i++) {
+        int under_l = (i >= 1 && i <= 3);
+        int under_r = (i >= 6 && i <= 8);
         uint32_t kc = BORDER;
         if ((paw == 0 || paw == 2) && under_l) kc = BLUE;
         if ((paw == 1 || paw == 2) && under_r) kc = BLUE;
-        fill(cx - 72 + i * 12, 47, 9, 6, kc);
+        fill(cx - 68 + i * 14, 47, 11, 8, kc);
     }
 
-    /* cola */
-    for (int i = 0; i < 20; i++) {
-        int x = cx + 28 + i;
-        int y = 38 - (i * i) / 40 + (sway ? (i % 3) : 0);
-        disc(x, y, i > 14 ? 1 : 2, FUR);
+    /* ---------- cola (curva en S) ---------- */
+    for (int i = 0; i < 24; i++) {
+        int x = cx + 26 + i;
+        int y = 40 - (i * i) / 34 + (i > 12 ? (i - 12) / 2 : 0);
+        disc(x, y, (i > 18) ? 1 : 2, FUR);
     }
 
-    /* cuerpo */
-    rounded(cx - 30, 28, 60, 18, 8, FUR);
+    /* ---------- cuerpo ---------- */
+    rounded(cx - 26, 30, 52, 16, 8, FUR);
+    /* sombra bajo el cuerpo */
+    rounded(cx - 24, 44, 48, 3, 1, 0x101018);
 
-    /* patas encima del teclado */
+    /* ---------- patas sobre las teclas ---------- */
     int pl = (paw == 0 || paw == 2) ? -4 : 0;
     int pr = (paw == 1 || paw == 2) ? -4 : 0;
-    rounded(cx - 20, 40 + pl, 12, 7, 3, FUR);
-    rounded(cx + 8, 40 + pr, 12, 7, 3, FUR);
+    rounded(cx - 20, 38 + pl, 16, 9, 4, FUR);
+    rounded(cx + 4, 38 + pr, 16, 9, 4, FUR);
     /* deditos */
-    fill(cx - 18, 44 + pl, 2, 2, SURFACE);
-    fill(cx - 14, 44 + pl, 2, 2, SURFACE);
-    fill(cx + 10, 44 + pr, 2, 2, SURFACE);
-    fill(cx + 14, 44 + pr, 2, 2, SURFACE);
+    for (int i = 0; i < 3; i++) {
+        fill(cx - 18 + i * 5, 44 + pl, 1, 2, SURFACE);
+        fill(cx + 6 + i * 5, 44 + pr, 1, 2, SURFACE);
+    }
 
-    /* orejas */
-    ear(cx - 8, 14, 11, 8, FUR);
-    ear(cx + 8, 14, 11, 8, FUR);
-    ear(cx - 8, 14, 6, 4, PINK);
-    ear(cx + 8, 14, 6, 4, PINK);
+    /* ---------- orejas ---------- */
+    ear(cx - 9, 12, 13, 11, FUR);
+    ear(cx + 9, 12, 13, 11, FUR);
+    ear(cx - 9, 12, 7, 6, PINK);
+    ear(cx + 9, 12, 7, 6, PINK);
 
-    /* cabeza */
-    disc(cx, 22, 14, FUR);
+    /* ---------- cabeza ---------- */
+    disc(cx, 22, 15, FUR);
 
-    /* ojos */
-    disc(cx - 5, 20, 2, CYAN);
-    disc(cx + 5, 20, 2, CYAN);
-    px(cx - 5, 20, 0x101018);
-    px(cx + 5, 20, 0x101018);
+    /* ---------- ojos enfadados (líneas inclinadas) ---------- */
+    for (int i = 0; i < 6; i++) {
+        px(cx - 11 + i, 21 - i / 3, 0x101018);
+        px(cx + 11 - i, 21 - i / 3, 0x101018);
+    }
+    if (blink) {   /* pestañeo: línea recta */
+        for (int i = 0; i < 6; i++) {
+            px(cx - 11 + i, 22, 0x101018);
+            px(cx + 6 + i, 22, 0x101018);
+        }
+    }
 
-    /* hocico */
-    px(cx, 25, PINK);
+    /* ---------- morro enfadado ---------- */
+    px(cx, 27, PINK);
+    px(cx - 1, 27, PINK);
+    for (int i = 0; i < 4; i++) {
+        px(cx - 2 + i, 29 - (i == 1 || i == 2 ? 1 : 0), DIM);
+    }
 
-    /* bigotes */
-    for (int i = 0; i < 5; i++) {
-        px(cx - 9 - i, 24 + i / 3, DIM);
-        px(cx + 9 + i, 24 + i / 3, DIM);
+    /* ---------- mejillas ---------- */
+    disc(cx - 11, 26, 1, PINK);
+    disc(cx + 11, 26, 1, PINK);
+
+    /* ---------- bigotes ---------- */
+    for (int i = 0; i < 3; i++) {
+        px(cx - 14 - i, 24 + i * 2, DIM);
+        px(cx + 14 + i, 24 + i * 2, DIM);
     }
 }
 
