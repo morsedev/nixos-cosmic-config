@@ -170,6 +170,23 @@ def index(binds):
     return {(b["dispatcher"], (b["arg"] or "").strip()): b for b in binds}
 
 
+def find_bind(table, dispatcher, arg):
+    """Busca un atajo por dispatcher+arg, tolerando rutas absolutas.
+
+    El atajo de esta chuleta se ejecuta con la ruta completa de
+    /nix/store/.../hyprkeys-open, así que comparamos también por sufijo para
+    no mostrar rutas internas en pantalla.
+    """
+    exact = table.get((dispatcher, arg))
+    if exact is not None:
+        return exact, (dispatcher, arg)
+    if arg:
+        for key, bind in table.items():
+            if key[0] == dispatcher and key[1].endswith(arg):
+                return bind, key
+    return None, None
+
+
 def main():
     binds = load_binds()
     if not binds:
@@ -182,10 +199,10 @@ def main():
 
     for section, items in SECTIONS:
         for dispatcher, arg, desc in items:
-            bind = table.get((dispatcher, arg))
+            bind, key = find_bind(table, dispatcher, arg)
             if bind is None:
                 continue
-            used.add((dispatcher, arg))
+            used.add(key)
             rows.append((section, key_label(bind), desc))
 
     # Workspaces 1..9 (dos columnas de descripción)
@@ -209,7 +226,7 @@ def main():
     media = []
     others = []
     for (dispatcher, arg), bind in table.items():
-        if (dispatcher, arg) in used:
+        if (dispatcher, arg) in used or bind["mouse"]:
             continue
         raw = bind["key"] or ""
         if raw.startswith("XF86"):
