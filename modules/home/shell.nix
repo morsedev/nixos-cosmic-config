@@ -27,6 +27,9 @@
   programs.starship = {
     enable = true;
     enableZshIntegration = true;     # se activa dentro de zsh
+    # El shell de login de esta máquina es bash (no zsh), así que también
+    # activamos el prompt ahí. Si algún día cambias el shell a zsh, sigue igual.
+    enableBashIntegration = true;
 
     settings = {
       # -------------------------------------------------------------------

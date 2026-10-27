@@ -28,6 +28,21 @@
       window-padding-balance = true;             # reparte el padding por igual
       window-decoration = false;                 # sin barra de título (la pone Hyprland)
       background-opacity = 0.90;                 # transparencia (Hyprland le aplica blur)
+
+      # --- Colores Tokyo Night ---
+      # Si no se ponen, Ghostty usa SU tema por defecto (un gris azulado más
+      # claro, #282c34) y la terminal desentona con el resto del escritorio.
+      background = "#16161e";
+      foreground = "#c0caf5";
+      cursor-color = "#c0caf5";
+      selection-background = "#33467c";
+      selection-foreground = "#c0caf5";
+      palette = [
+        "0=#15161e"  "1=#f7768e"  "2=#9ece6a"  "3=#e0af68"
+        "4=#7aa2f7"  "5=#bb9af7"  "6=#7dcfff"  "7=#a9b1d6"
+        "8=#414868"  "9=#f7768e"  "10=#9ece6a" "11=#e0af68"
+        "12=#7aa2f7" "13=#bb9af7" "14=#7dcfff" "15=#c0caf5"
+      ];
       minimum-contrast = 1.1;                    # evita texto ilegible sobre el fondo
       confirm-close-surface = false;             # cerrar con Cmd+W sin preguntar
 

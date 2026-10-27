@@ -11,6 +11,21 @@
 { config, pkgs, lib, ... }:
 
 {
+  # ===========================================================================
+  # CHULETA DE ATAJOS  (Super + /)
+  # ===========================================================================
+  home.packages = [
+    # `hyprkeys` lee los atajos REALES del compositor (hyprctl -j binds) y los
+    # pinta agrupados en español. Al añadir un atajo nuevo aparece solo.
+    (pkgs.writers.writePython3Bin "hyprkeys" { } ./hyprkeys.py)
+
+    # Abre la chuleta en una ventana flotante y centrada.
+    # El prefijo [float;center;size W H] es una "regla de ejecución" de Hyprland.
+    (pkgs.writeShellScriptBin "hyprkeys-open" ''
+      exec hyprctl dispatch exec '[float;center;size 1180 820] ghostty -e hyprkeys'
+    '')
+  ];
+
   wayland.windowManager.hyprland = {
     enable = true;
     # Usar la config clásica (hyprlang): exec-once/bind/monitor fiables.
@@ -176,6 +191,9 @@
 
         # Portapapeles
         "$mod, C, exec, cliphist list | wofi --dmenu | cliphist decode | wl-copy"
+
+        # Chuleta de atajos (ventana flotante)
+        "$mod, slash, exec, hyprkeys-open"
 
         # Mover el foco
         "$mod, left, movefocus, l"

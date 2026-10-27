@@ -77,13 +77,26 @@
     pkgs.runCommand "tokyo-night-wallpaper.png" {
       nativeBuildInputs = [ pkgs.imagemagick ];
     } ''
-      magick -size 1280x800 gradient:'#1c2438'-'#0b0c12' \
-        -fill 'rgba(122,162,247,0.30)' -draw 'ellipse 300,80 560,460 0,360' \
-        -fill 'rgba(187,154,247,0.26)' -draw 'ellipse 1080,720 600,470 0,360' \
-        -fill 'rgba(115,218,202,0.16)' -draw 'ellipse 950,110 380,320 0,360' \
-        -blur 0x70 \
+      # 1) Base: degradado vertical oscuro (arriba MÁS oscuro, para que la
+      #    barra siempre tenga contraste; abajo se aclara un poco).
+      # 2) Tres manchas de luz (azul, morado, turquesa), difuminadas.
+      # 3) Rejilla fina de 64px (estructura, estilo "técnico").
+      # 4) Grano sutil para que no se vea como un degradado de plástico.
+      magick -size 1280x800 gradient:'#131722'-'#1b1c2a' \
+        -fill 'rgba(122,162,247,0.34)' -draw 'ellipse 250,700 640,540 0,360' \
+        -fill 'rgba(187,154,247,0.30)' -draw 'ellipse 1060,760 660,540 0,360' \
+        -fill 'rgba(115,218,202,0.12)' -draw 'ellipse 900,120 380,300 0,360' \
+        -blur 0x80 \
         -resize 2560x1600! \
-        -attenuate 0.03 +noise Gaussian \
+        "$TMPDIR/base.png"
+
+      grid=""
+      for x in $(seq 0 64 2560); do grid="$grid line $x,0 $x,1600"; done
+      for y in $(seq 0 64 1600); do grid="$grid line 0,$y 2560,$y"; done
+
+      magick "$TMPDIR/base.png" \
+        -stroke 'rgba(122,162,247,0.07)' -strokewidth 1 -draw "$grid" \
+        -attenuate 0.02 +noise Gaussian \
         "$out"
     '';
 
@@ -120,6 +133,7 @@
   environment.systemPackages = with pkgs; [
     # --- Componentes del ricing ---
     sddm-astronaut      # tema gráfico del login
+    fastfetch           # resumen del sistema con logo (para la terminal)
     waybar              # barra superior
     wofi                # lanzador de aplicaciones
     mako                # notificaciones

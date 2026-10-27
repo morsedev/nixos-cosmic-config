@@ -77,7 +77,7 @@ in
       margin-left = 10;
       margin-right = 10;
 
-      modules-left = [ "custom/launcher" "hyprland/workspaces" "hyprland/window" ];
+      modules-left = [ "custom/launcher" "hyprland/workspaces" ];
       modules-center = [ "clock" "custom/date" ];
       modules-right = [ "tray" "pulseaudio" "network" "battery" "custom/control" "custom/power" ];
 
@@ -98,17 +98,6 @@ in
         all-outputs = true;
         # Mostrar siempre los workspaces 1-5 aunque estén vacíos.
         persistent-workspaces = { "*" = 5; };
-      };
-
-      # Título de la ventana activa
-      "hyprland/window" = {
-        format = "{title}";
-        max-length = 50;
-        separate-outputs = false;
-        tooltip = false;
-        rewrite = {
-          "(.*) — Mozilla Firefox" = "$1";
-        };
       };
 
       # Reloj
@@ -221,8 +210,8 @@ in
       .modules-left,
       .modules-center,
       .modules-right {
-        background: rgba(22, 22, 30, 0.86);
-        border: 1px solid rgba(122, 162, 247, 0.16);
+        background: rgba(22, 22, 30, 0.70);
+        border: 1px solid rgba(192, 202, 245, 0.07);
         border-radius: 13px;
         padding: 0 10px;
         margin: 0 4px;
@@ -237,7 +226,7 @@ in
         padding: 0 9px;
         margin: 6px 2px;
         min-width: 16px;
-        color: #565f89;
+        color: #7f8bb5;
         border-radius: 8px;
         font-weight: 600;
         font-size: 12px;
@@ -280,8 +269,10 @@ in
       #pulseaudio,
       #network,
       #battery {
-        padding: 0 9px;
+        padding: 0 8px;
+        margin: 0 2px;
         color: #c0caf5;
+        min-width: 34px;
       }
       #pulseaudio.muted { color: #565f89; }
       #network.disconnected { color: #565f89; }
@@ -290,15 +281,15 @@ in
       #battery.warning:not(.charging) { color: #e0af68; }
       #battery.critical:not(.charging) { color: #f7768e; }
 
-      #tray { padding: 0 8px; }
+      #tray { padding: 0 8px 0 4px; }
       #tray > .passive { -gtk-icon-effect: dim; }
 
       /* --- Botones --- */
       #custom-launcher {
-        color: #7aa2f7;
+        color: #a9b1d6;
         font-family: "JetBrainsMono Nerd Font";
-        font-size: 16px;
-        padding: 0 10px 0 8px;
+        font-size: 15px;
+        padding: 0 8px 0 6px;
       }
       #custom-control {
         color: #a9b1d6;
@@ -377,7 +368,7 @@ in
         /* El panel en sí */
         .box-wrapper {
           min-width: 620px;
-          background: rgba(22, 22, 30, 0.88);
+          background: rgba(22, 22, 30, 0.82);
           border: 1px solid rgba(122, 162, 247, 0.16);
           border-radius: 16px;
           padding: 16px;
@@ -522,7 +513,7 @@ in
       timeout-critical = 0;
       fit-to-screen = true;
       control-center-width = 380;
-      control-center-height = 720;
+      control-center-height = 620;
       notification-window-width = 380;
       keyboard-shortcuts = true;
       image-visibility = "when-available";
@@ -559,8 +550,8 @@ in
 
       /* Panel: flotante, con margen real y esquinas suaves */
       .control-center {
-        background: rgba(22, 22, 30, 0.90);
-        border: 1px solid rgba(122, 162, 247, 0.16);
+        background: rgba(22, 22, 30, 0.74);
+        border: 1px solid rgba(192, 202, 245, 0.07);
         border-radius: 16px;
         color: #c0caf5;
         padding: 14px;
