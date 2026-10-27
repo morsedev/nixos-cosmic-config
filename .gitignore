@@ -1,0 +1,9 @@
+# Resultados de build
+result
+result-*
+
+# Firmware periférico del Mac (específico de la máquina, no va al repo)
+vendorfw/
+
+# Backups de configuración
+*.bak
