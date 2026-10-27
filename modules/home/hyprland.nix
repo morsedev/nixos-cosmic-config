@@ -37,7 +37,9 @@ let
     cache="''${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper"
     mkdir -p "$(dirname "$cache")"
 
-    mapfile -t files < <(find "$dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.png' \) | sort)
+    # OJO: /etc/wallpapers son enlaces simbólicos, así que hay que aceptar
+    # tanto ficheros normales (-type f) como enlaces (-type l).
+    mapfile -t files < <(find "$dir" -maxdepth 1 \( -type f -o -type l \) \( -iname '*.jpg' -o -iname '*.png' \) | sort)
     if [ "''${#files[@]}" -eq 0 ]; then
       notify-send "Fondos" "No hay imágenes en $dir" 2>/dev/null || true
       exit 1
