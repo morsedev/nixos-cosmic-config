@@ -43,7 +43,10 @@ jobs:
 
       - name: Evaluar la configuración completa
         run: |
-          nix eval .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw
+          echo "=== Salidas del flake ==="
+          nix flake show --all-systems --no-write-lock-file 2>&1 | tail -25 || true
+          echo "=== Evaluación ==="
+          nix eval --show-trace .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw 2>&1 | tail -40
           echo "✅ La configuración evalúa correctamente"
 
   # ============================================================
