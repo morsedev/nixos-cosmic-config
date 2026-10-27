@@ -132,11 +132,8 @@
       # pantalla y difuminaría una franja completa en vez de solo la barra.
       layerrule = [
         "blur walker"
-        "ignorezero walker"
         "blur swaync-control-center"
         "blur swaync-notification-window"
-        "ignorezero swaync-control-center"
-        "ignorezero swaync-notification-window"
       ];
 
       # --- Programas que arrancan con la sesión ---
