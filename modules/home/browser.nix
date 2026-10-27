@@ -89,52 +89,32 @@
       # adelante, y pintamos lo que queda con la paleta Tokyo Night.
       userChrome = ''
         /* ================================================================= */
-        /*  ZEN MINIMAL — cosmética Tokyo Night + sin pestañas visibles       */
+        /*  ZEN — estilo Tokyo Night (sin tocar la estructura de la interfaz) */
         /* ================================================================= */
-        /*  IMPORTANTE: la barra de direcciones de Zen vive en                 */
-        /*  #zen-appcontent-navbar-wrapper. NO ocultar #titlebar, #nav-bar ni  */
-        /*  #navigator-toolbox: si se ocultan, desaparece toda la barra.       */
+        /*  Lección aprendida: Zen mueve la barra de direcciones dentro de    */
+        /*  contenedores que cambian según el modo; ocultar "pestañas" con    */
+        /*  CSS deja el navegador sin barra. Aquí solo se pinta el color y    */
+        /*  se oculta la barra de marcadores.                                 */
 
         :root {
           --tn-bg:     #16161e;
           --tn-bg2:    #1f2335;
           --tn-border: #292e42;
           --tn-fg:     #c0caf5;
-          --tn-dim:    #565f89;
           --tn-blue:   #7aa2f7;
         }
 
-        /* --- Marcadores: fuera ------------------------------------------- */
-        /* OJO: NO ocultar #TabsToolbar. En Zen la barra de direcciones está
-           dentro de esa barra; si se oculta, desaparece el campo de URL. */
+        /* Barra de marcadores: fuera (no aporta y ocupa altura) */
         #PersonalToolbar { display: none !important; }
 
-        /* --- Barra superior ---------------------------------------------- */
+        /* Colores de la barra superior */
         #navigator-toolbox,
-        #zen-appcontent-navbar-wrapper,
-        #zen-appcontent-navbar-container {
+        #zen-appcontent-navbar-wrapper {
           background: var(--tn-bg) !important;
           border-bottom: 1px solid var(--tn-border) !important;
         }
 
-        /* --- Barra de direcciones ---------------------------------------- */
-        /* Zen colapsa el campo a 0px cuando la barra lateral está plegada.
-           Forzamos su ancho para que siempre sea visible. */
-        #nav-bar {
-          display: flex !important;
-          min-height: 38px !important;
-        }
-        #nav-bar-customization-target {
-          display: flex !important;
-          flex: 1 1 auto !important;
-        }
-        #urlbar-container {
-          flex: 1 1 auto !important;
-          min-width: 320px !important;
-          width: auto !important;
-        }
-        #urlbar { min-width: 320px !important; }
-
+        /* Barra de direcciones */
         #urlbar-background {
           background: var(--tn-bg2) !important;
           border: 1px solid var(--tn-border) !important;
@@ -145,35 +125,14 @@
           box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.20) !important;
         }
         #urlbar-input { color: var(--tn-fg) !important; }
-        #urlbar-input::placeholder { color: var(--tn-dim) !important; }
 
-        /* --- Sugerencias -------------------------------------------------- */
+        /* Sugerencias */
         .urlbarView {
           background: var(--tn-bg) !important;
           border: 1px solid var(--tn-border) !important;
           border-radius: 12px !important;
         }
         .urlbarView-row[selected] { background: rgba(122, 162, 247, 0.18) !important; }
-
-        /* --- Botones ------------------------------------------------------ */
-        #back-button,
-        #forward-button { border-radius: 8px !important; }
-        #back-button:hover,
-        #forward-button:hover { background: var(--tn-border) !important; }
-        #back-button[disabled="true"],
-        #forward-button[disabled="true"] { opacity: 0.3 !important; }
-
-        #reload-button,
-        #stop-button,
-        #home-button,
-        #downloads-button,
-        #unified-extensions-button { display: none !important; }
-
-        #PanelUI-menu-button { opacity: 0.35 !important; border-radius: 8px !important; }
-        #PanelUI-menu-button:hover { opacity: 1 !important; background: var(--tn-border) !important; }
-
-        /* --- Separador de la barra lateral ------------------------------- */
-        #zen-sidebar-splitter { display: none !important; }
       '';
     };
   };
