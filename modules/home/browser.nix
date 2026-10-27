@@ -111,9 +111,9 @@
           body::after {
             content: "東京";
             position: fixed;
-            right: 5vw;
-            bottom: 3vh;
-            font-size: 14vw;
+            right: 7vw;
+            bottom: 9vh;
+            font-size: 11vw;
             line-height: 1;
             color: rgba(187, 154, 247, 0.085);
             pointer-events: none;
@@ -128,6 +128,8 @@
           .weather-sponsored,
           [class*="weather"],
           .customize-button,
+          #customization-button,
+          button.customize-button,
           .click-target-container { display: none !important; }
 
           /* Títulos de accesos directos en una sola línea */
