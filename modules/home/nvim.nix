@@ -30,11 +30,6 @@
       ripgrep                   # para Telescope live_grep
       fd                        # para Telescope find_files
     ];
-
-    # Config de usuario
-    configure = {
-      customRC = "";
-    };
   };
 
   # Colocar el init.lua estilo kickstart
