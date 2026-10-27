@@ -210,7 +210,7 @@ in
       .modules-left,
       .modules-center,
       .modules-right {
-        background: rgba(22, 22, 30, 0.70);
+        background: rgba(22, 22, 30, 0.80);
         border: 1px solid rgba(192, 202, 245, 0.07);
         border-radius: 13px;
         padding: 0 10px;

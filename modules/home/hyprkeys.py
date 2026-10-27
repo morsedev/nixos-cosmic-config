@@ -144,7 +144,7 @@ def load_binds():
     current = None
     for line in out.stdout.splitlines():
         stripped = line.strip()
-        if stripped == "bind":
+        if stripped in ("bind", "bindm"):
             current = {
                 "modmask": 0,
                 "key": "",
@@ -231,7 +231,7 @@ def main():
         if (dispatcher, arg) in used:
             continue
         # Los binds de ratón ya tienen su propia sección.
-        if dispatcher in ("movewindow", "resizewindow"):
+        if dispatcher == "mouse":
             continue
         raw = bind["key"] or ""
         if raw.startswith("XF86"):
@@ -262,14 +262,19 @@ def main():
             current = section
         print("    " + GREEN + label.ljust(width) + RESET + FG + desc + RESET)
 
-    # Ratón (bindm)
-    mouse = [(b["dispatcher"], b["arg"]) for b in binds if b["dispatcher"] in ("movewindow", "resizewindow")]
+    # Ratón (bindm): dispatcher "mouse", arg "movewindow" / "resizewindow".
+    mouse = [b for b in binds if b["dispatcher"] == "mouse"]
     if mouse:
         print()
         print("  " + BOLD + PURPLE + "RATÓN" + RESET)
-        for dispatcher, arg in sorted(mouse, key=lambda x: x[0]):
-            text = "Arrastrar la ventana" if dispatcher == "movewindow" else "Redimensionar la ventana"
-            print("    " + GREEN + "Super + Click izq. / der.".ljust(width) + RESET + FG + text + RESET)
+        for bind in mouse:
+            text = (
+                "Arrastrar la ventana"
+                if bind["arg"] == "movewindow"
+                else "Redimensionar la ventana"
+            )
+            label = key_label(bind)
+            print("    " + GREEN + label.ljust(width) + RESET + FG + text + RESET)
 
     print()
     print("  " + DIM + "Cierra esta ventana o pulsa Enter para salir." + RESET)
