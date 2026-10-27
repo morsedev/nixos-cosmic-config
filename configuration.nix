@@ -86,8 +86,10 @@
     # Compila UN paquete a la vez (evita quedarse sin RAM en un Mac de 8 GB).
     max-jobs = 1;
 
-    # Cada compilación puede usar hasta 4 núcleos.
-    cores = 4;
+    # Cada compilación usa hasta 2 núcleos. Con 4, un build pesado (kernel,
+    # U-Boot, Hyprland) puede quedarse sin RAM en 8 GB. Si tienes 16 GB,
+    # puedes subirlo a 4.
+    cores = 2;
   };
 
   # Permite instalar programas con licencias "no libres" (navegadores,
@@ -102,8 +104,8 @@
   zramSwap.memoryPercent = 50;   # usa hasta el 50% de la RAM para zram
 
   # Swap en disco (archivo /swapfile) como respaldo adicional.
-  # OJO: el archivo debe existir (ver README: se crea una vez a mano).
-  swapDevices = [ { device = "/swapfile"; } ];
+  # `size` hace que NixOS CREE el archivo automáticamente (16 GiB) si no existe.
+  swapDevices = [ { device = "/swapfile"; size = 16384; } ];
 
   # ---------------------------------------------------------------------------
   # USUARIO

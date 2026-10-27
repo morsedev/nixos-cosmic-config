@@ -21,6 +21,17 @@ al estilo nixarchy**. Incluye:
 
 ## Usarlo como módulo (como nixarchy) — la forma recomendada
 
+> ⚠️ **REQUISITO IMPORTANTE (Apple Silicon):** el kernel `linux-asahi` y
+> `uboot-asahi` se compilan con **el nixpkgs de tu flake**. Debe coincidir con
+> la release de `nixos-apple-silicon`. Con `nixos-unstable` actual (dtc 1.8.1)
+> U-Boot falla con `unrecognized check name node_name_not_empty`.
+> Por eso, en **tu** `/etc/nixos/flake.nix` fija:
+> ```nix
+> nixpkgs.url = "github:nixos/nixpkgs/e2587caef70cea85dd97d7daab492899902dbf5d";
+> ```
+> (es el mismo rev que tu ISO y que la release de Asahi). Luego:
+> `sudo nix flake update nixpkgs`.
+
 Tu `/etc/nixos/flake.nix` (el que ya tienes) solo cambia **una línea**:
 
 ```nix
