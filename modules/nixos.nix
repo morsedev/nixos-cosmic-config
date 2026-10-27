@@ -4,7 +4,7 @@
 #   nixarchy.url = "github:morsedev/nixos-cosmic-config";
 #   modules = [ ./configuration.nix nixarchy.nixosModules.nixarchy ... ];
 # =====================================================================
-inputs:
+{ inputs }:
 { config, lib, pkgs, ... }:
 
 {

@@ -6,7 +6,7 @@
 #     programs.nixarchy.enable = true;
 #   };
 # =====================================================================
-inputs:
+{ inputs }:
 { config, lib, pkgs, ... }:
 
 {
