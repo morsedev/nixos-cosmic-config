@@ -53,6 +53,16 @@
         "browser.contentblocking.category" = "strict";
         "privacy.trackingprotection.enabled" = true;
 
+        # --- Saltar la bienvenida de Firefox (perfil nuevo) ---
+        # Sin esto, la primera vez se abre la página de "bienvenida" y no
+        # nuestra nueva pestaña Tokyo Night.
+        "browser.aboutwelcome.enabled" = false;
+        "browser.startup.firstrunSkipsHomepage" = true;
+        "browser.startup.homepage_override.mstone" = "ignore";
+        "browser.messaging-system.whatsNewPanel.enabled" = false;
+        "browser.shell.checkDefaultBrowser" = false;
+        "datareporting.policy.dataSubmissionEnabled" = false;
+
         # --- Comodidad ---
         # Preguntar antes de cerrar con varias pestañas (evita cierres accidentales).
         "browser.tabs.warnOnClose" = true;
@@ -158,6 +168,20 @@
           --tn-fg:     #c0caf5;
           --tn-dim:    #565f89;
           --tn-blue:   #7aa2f7;
+
+          /* Variables que Firefox usa de verdad para pintar la barra.
+             Sin esto, #urlbar-background se queda con el color del tema. */
+          --toolbar-bgcolor: #1a1b26 !important;
+          --toolbar-color: #c0caf5 !important;
+          --lwt-accent-color: #16161e !important;
+          --lwt-text-color: #c0caf5 !important;
+          --toolbar-field-background-color: #24283b !important;
+          --toolbar-field-color: #c0caf5 !important;
+          --toolbar-field-border-color: #3b4261 !important;
+          --toolbar-field-focus-background-color: #24283b !important;
+          --toolbar-field-focus-border-color: #7aa2f7 !important;
+          --lwt-toolbar-field-background-color: #24283b !important;
+          --lwt-toolbar-field-focus: #24283b !important;
         }
 
         /* --- 1. Sin pestañas visibles ------------------------------------ */
