@@ -50,14 +50,18 @@ KEYNAMES = {
     "right": "→",
     "up": "↑",
     "down": "↓",
-    "XF86AudioRaiseVolume": "Subir volumen",
-    "XF86AudioLowerVolume": "Bajar volumen",
-    "XF86AudioMute": "Silenciar",
-    "XF86MonBrightnessUp": "Subir brillo",
-    "XF86MonBrightnessDown": "Bajar brillo",
-    "XF86AudioPlay": "Play / Pausa",
-    "XF86AudioNext": "Siguiente canción",
-    "XF86AudioPrev": "Canción anterior",
+}
+
+# Teclas de función del Mac -> (etiqueta corta, qué hace)
+MEDIA = {
+    "XF86AudioRaiseVolume": ("Volumen +", "Subir el volumen"),
+    "XF86AudioLowerVolume": ("Volumen −", "Bajar el volumen"),
+    "XF86AudioMute": ("Silencio", "Silenciar / reactivar"),
+    "XF86MonBrightnessUp": ("Brillo +", "Subir el brillo"),
+    "XF86MonBrightnessDown": ("Brillo −", "Bajar el brillo"),
+    "XF86AudioPlay": ("Play/Pausa", "Reproducir o pausar"),
+    "XF86AudioNext": ("Siguiente", "Siguiente canción"),
+    "XF86AudioPrev": ("Anterior", "Canción anterior"),
 }
 
 
@@ -65,6 +69,8 @@ def key_label(bind):
     """Devuelve 'Super + Shift + Q' a partir de un bind de hyprctl."""
     parts = [name for bit, name in MOD_BITS if bind["modmask"] & bit]
     raw = bind["key"] or ""
+    if bind["mouse"]:
+        raw = "mouse:" + raw
     key = MOUSE.get(raw, KEYNAMES.get(raw, raw))
     if len(key) == 1:
         key = key.upper()
@@ -118,15 +124,46 @@ WORKSPACE_ROWS = [
 
 
 def load_binds():
-    out = subprocess.run(
-        ["hyprctl", "-j", "binds"], capture_output=True, text=True, check=False
-    )
+    """Lee `hyprctl binds` (texto) y devuelve una lista de diccionarios.
+
+    Nota: en Hyprland 0.56 la salida `-j` (JSON) está rota (campos
+    desalineados), así que parseamos el formato de texto, que sí es fiable:
+
+        bind
+            modmask: 64
+            key: RETURN
+            dispatcher: exec
+            arg: ghostty
+    """
+    out = subprocess.run(["hyprctl", "binds"], capture_output=True, text=True)
     if out.returncode != 0:
         return []
-    try:
-        return json.loads(out.stdout)
-    except json.JSONDecodeError:
-        return []
+
+    binds = []
+    current = None
+    for line in out.stdout.splitlines():
+        stripped = line.strip()
+        if stripped == "bind":
+            current = {
+                "modmask": 0,
+                "key": "",
+                "dispatcher": "",
+                "arg": "",
+                "mouse": False,
+            }
+            binds.append(current)
+            continue
+        if current is None or ":" not in stripped:
+            continue
+        name, value = stripped.split(":", 1)
+        name, value = name.strip(), value.strip()
+        if name == "modmask":
+            current["modmask"] = int(value or "0")
+        elif name == "mouse":
+            current["mouse"] = value == "true"
+        elif name in ("key", "dispatcher", "arg"):
+            current[name] = value
+    return binds
 
 
 def index(binds):
@@ -182,9 +219,8 @@ def main():
             others.append((bind, arg))
 
     for bind, arg in media:
-        label = key_label(bind)
-        desc = KEYNAMES.get(bind["key"], arg or bind["dispatcher"])
-        rows.append(("TECLAS DEL MAC", label, desc))
+        short, desc = MEDIA.get(bind["key"], (bind["key"], arg or ""))
+        rows.append(("TECLAS DEL MAC", short, desc))
 
     for bind, arg in others:
         rows.append(("OTROS", key_label(bind), arg or bind["dispatcher"]))
