@@ -44,6 +44,7 @@ let
     batThreeQuarter = glyph "f241";
     batFull = glyph "f240";
     bluetooth = glyph "f293";    # símbolo de bluetooth
+    gear = glyph "f013";         # engranaje (ajustes)
   };
 in
 {
@@ -80,7 +81,7 @@ in
 
       modules-left = [ "custom/launcher" "hyprland/workspaces" ];
       modules-center = [ "clock" "custom/date" ];
-      modules-right = [ "tray" "pulseaudio" "network" "bluetooth" "battery" "custom/control" "custom/power" ];
+      modules-right = [ "tray" "pulseaudio" "network" "bluetooth" "battery" "custom/control" "custom/settings" "custom/power" ];
 
       # Logo / botón de apps (abre el lanzador)
       # glyph "f313" = logo de NixOS (Nerd Font)
@@ -185,6 +186,14 @@ in
         tooltip = true;
         tooltip-format = "Centro de control";
         on-click = "swaync-client -t -sw";
+      };
+
+      # Botón de ajustes del sistema (fecha/hora, red, sonido...)
+      "custom/settings" = {
+        format = ico.gear;
+        tooltip = true;
+        tooltip-format = "Ajustes del sistema (Super+I)";
+        on-click = "settings";
       };
 
       # Botón de apagado (menú)
@@ -312,6 +321,13 @@ in
         font-size: 15px;
         padding: 0 8px;
       }
+      #custom-settings {
+        color: #a9b1d6;
+        font-size: 14px;
+        padding: 0 8px;
+      }
+      #custom-settings:hover { color: #7aa2f7; }
+
       #custom-power {
         color: #565f89;
         font-size: 14px;
