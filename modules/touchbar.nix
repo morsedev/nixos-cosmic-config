@@ -95,6 +95,33 @@ let
         (lib.range 1 12);
     };
   };
+  # ---------------------------------------------------------------------------
+  # GATO ANIMADO (prototipo)
+  # ---------------------------------------------------------------------------
+  # `touchbar-pet` escribe directamente en el panel (DRM) un gato que mueve las
+  # patas cuando tecleas, más el reloj y la batería.
+  #
+  # NO puede convivir con tiny-dfr: los dos quieren el mismo dispositivo. Por
+  # eso hay un comando para alternar entre ambos:
+  #
+  #   touchbar-pet on    -> para tiny-dfr y arranca el gato
+  #   touchbar-pet off   -> para el gato y vuelve a los botones de tiny-dfr
+  #   touchbar-pet status
+  #
+  # Si algo va mal, `touchbar-pet off` devuelve la Touch Bar a su estado normal.
+  touchbar-pet = pkgs.stdenv.mkDerivation {
+    pname = "touchbar-pet";
+    version = "0.1.0";
+    src = ../touchbar-pet;
+    nativeBuildInputs = [ pkgs.pkg-config ];
+    buildInputs = [ pkgs.libdrm ];
+    buildPhase = ''
+      $CC -O2 -Wall -o touchbar-pet pet.c $(pkg-config --cflags --libs libdrm) -lm
+    '';
+    installPhase = ''
+      install -Dm755 touchbar-pet $out/bin/touchbar-petd
+    '';
+  };
 in
 {
   # Cada layout se instala como /etc/tiny-dfr/presets/<nombre>.toml
@@ -103,6 +130,43 @@ in
       source = toml.generate "touchbar-${name}.toml" value;
     })
     presets;
+
+  # Servicio del gato (arranca solo cuando se pide con `touchbar-pet on`)
+  systemd.services.touchbar-pet = {
+    description = "Gato animado en la Touch Bar";
+    serviceConfig = {
+      ExecStart = "${touchbar-pet}/bin/touchbar-petd --run";
+      Restart = "no";
+      # Necesita acceso al DRM y a los dispositivos de entrada.
+      SupplementaryGroups = [ "input" ];
+    };
+  };
+
+  # Comando `touchbar-pet` (on/off/status)
+  environment.systemPackages = [
+    (pkgs.writeShellScriptBin "touchbar-pet" ''
+      case "''${1:-status}" in
+        on)
+          sudo systemctl stop tiny-dfr 2>/dev/null || true
+          sudo systemctl start touchbar-pet
+          notify-send -a "Touch Bar" "Gato activado" 2>/dev/null || true
+          ;;
+        off)
+          sudo systemctl stop touchbar-pet 2>/dev/null || true
+          sudo systemctl start tiny-dfr
+          notify-send -a "Touch Bar" "Botones restaurados" 2>/dev/null || true
+          ;;
+        status)
+          printf 'tiny-dfr:     %s\n' "$(systemctl is-active tiny-dfr)"
+          printf 'touchbar-pet: %s\n' "$(systemctl is-active touchbar-pet)"
+          ;;
+        *)
+          echo "uso: touchbar-pet on|off|status"
+          exit 1
+          ;;
+      esac
+    '')
+  ];
 
   # Comando `touchbar`
   environment.systemPackages = [
