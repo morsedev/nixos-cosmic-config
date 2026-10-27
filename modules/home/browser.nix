@@ -1,30 +1,48 @@
+# =============================================================================
+# modules/home/browser.nix  —  Zen Browser
+# =============================================================================
+#
+# Zen es un navegador basado en Firefox, muy configurable y con temas.
+# Se instala con el módulo de Home Manager que provee el flake `zen-browser`.
+#
+# `{ inputs }:` → recibe los inputs del flake (necesitamos inputs.zen-browser).
+# =============================================================================
+
 { inputs }:
 { config, pkgs, lib, ... }:
 
 {
-  # ============ ZEN BROWSER ============
-  # Navegador basado en Firefox, extremadamente configurable.
-  # Usa el módulo de Home Manager del flake (rama beta).
+  # ---------------------------------------------------------------------------
+  # MÓDULO DEL NAVEGADOR
+  # ---------------------------------------------------------------------------
+  # `inputs.zen-browser.homeModules.beta` es el módulo que define las opciones
+  # `programs.zen-browser.*`. Hay que importarlo para poder usarlas.
   imports = [ inputs.zen-browser.homeModules.beta ];
 
   programs.zen-browser = {
     enable = true;
 
-    # Perfil por defecto
+    # -------------------------------------------------------------------------
+    # PERFIL
+    # -------------------------------------------------------------------------
+    # Un "perfil" es una configuración de navegador (marcadores, ajustes...).
     profiles.default = {
-      isDefault = true;
-      # Ajustes del navegador
+      isDefault = true;   # usar este perfil por defecto
+
+      # Ajustes internos del navegador (los mismos de about:config).
       settings = {
-        # UI compacta (menos barras, más espacio)
-        "browser.uidensity" = 1;
-        # Privacidad estricta
-        "privacy.donottrackheader.enabled" = true;
-        "browser.contentblocking.category" = "strict";
+        "browser.uidensity" = 1;                    # interfaz compacta
+        "privacy.donottrackheader.enabled" = true;  # pide no ser rastreado
+        "browser.contentblocking.category" = "strict"; # bloqueo estricto
       };
     };
   };
 
-  # Zen como navegador por defecto
+  # ---------------------------------------------------------------------------
+  # NAVEGADOR POR DEFECTO
+  # ---------------------------------------------------------------------------
+  # Cuando pulses un enlace (http/https), se abrirá Zen.
+  # Los nombres `*.desktop` son los "lanzadores" de las apps en Linux.
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {

@@ -1,12 +1,43 @@
+# =============================================================================
+# .github/workflows/build.yml  —  Verificación automática en GitHub Actions
+# =============================================================================
+#
+# ¿Qué es esto?
+#   Un "workflow" de GitHub Actions: código que GitHub ejecuta en la nube
+#   cuando subes cambios. Aquí sirve para COMPROBAR que la configuración de
+#   NixOS es correcta ANTES de aplicarla en tu Mac.
+#
+# ¿Por qué es útil?
+#   Sin esto, descubrir un error implica `nixos-rebuild` en tu Mac y esperar
+#   (posiblemente horas). Aquí lo descubrimos en ~1 minuto.
+#
+# Runner:
+#   `ubuntu-24.04-arm` = una máquina Linux ARM64 en la nube. Es la misma
+#   arquitectura que tu Mac (aarch64), así que compila nativamente.
+#
+# Dos trabajos ("jobs"):
+#   1) eval  → se ejecuta en cada push. Comprueba que TODO evalúa (nombres de
+#              opciones, paquetes, imports...). Rápido.
+#   2) build → SOLO manual (botón "Run workflow"). Compila el sistema entero.
+# =============================================================================
+
 name: Verificar config NixOS (Apple Silicon)
 
+# ¿Cuándo se ejecuta? (los "triggers")
 on:
   push:
-    branches: [main]
-  pull_request:
-  workflow_dispatch: # botón "Run workflow" para validar el build completo
+    branches: [main]      # al subir cambios a la rama main
+  pull_request:           # al abrir un pull request
+  workflow_dispatch:      # y manualmente desde la pestaña Actions
 
+# Variables de entorno para todos los pasos.
 env:
+  # NIX_CONFIG configura Nix:
+  #   extra-substituters       → servidores de los que DESCARGAR paquetes ya
+  #                              compilados (evita compilar).
+  #   extra-trusted-public-keys→ claves para confiar en esos servidores.
+  #   experimental-features    → habilita `nix` moderno y flakes.
+  #   cores = 0                → usa todos los núcleos disponibles.
   NIX_CONFIG: |
     extra-substituters = https://cache.nixos.org https://cosmic.cachix.org https://nix-community.cachix.org
     extra-trusted-public-keys = cosmic.cachix.org-1:Dya9IyXD4xd0hV8x1JsDd3CgE6GP5gDdhI5rAeBMKfs= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
@@ -14,41 +45,51 @@ env:
     cores = 0
 
 jobs:
-  # ============================================================
-  # FASE 1: EVALUACIÓN (rápida, en cada push)
-  # ============================================================
+  # ===========================================================================
+  # TRABAJO 1: EVALUACIÓN (rápido)
+  # ===========================================================================
   eval:
     name: Evaluar configuración
+    # `runs-on` = máquina donde se ejecuta. ARM64 nativa.
     runs-on: ubuntu-24.04-arm
+    # Si tarda más de 20 min, se cancela (evita colgarse).
     timeout-minutes: 20
+
+    # `steps` = lista de pasos, en orden.
     steps:
+      # 1) Descarga el código del repositorio.
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # evitar problemas de flake con clones shallow
+          # Historial completo: los flakes a veces fallan con clones "shallow".
+          fetch-depth: 0
 
+      # 2) Instala Nix en la máquina del runner.
       - name: Instalar Nix (Determinate)
         uses: DeterminateSystems/nix-installer-action@v13
 
-      - name: Diagnóstico de salidas
-        run: |
-          git config --global --add safe.directory "$PWD"
-          echo "=== attrNames de nixosConfigurations ==="
-          nix eval --json .#nixosConfigurations --apply 'builtins.attrNames' || true
-          echo "=== attrNames de macnix ==="
-          nix eval --json .#nixosConfigurations.macnix --apply 'builtins.attrNames' || true
-
+      # 3) Comprobaciones de evaluación.
       - name: Evaluar la configuración completa
         run: |
+          # `set -o pipefail`: si un comando de la tubería falla, el paso falla.
           set -o pipefail
           echo "=== hostName ==="
+          # Evalúa una opción simple para comprobar que el flake se carga.
           nix eval .#nixosConfigurations.macnix.config.networking.hostName --raw
+
           echo ""
           echo "=== system.build attrNames ==="
-          nix eval --json .#nixosConfigurations.macnix.config.system.build --apply 'builtins.attrNames' || true
+          # Lista los "targets" de construcción disponibles.
+          nix eval --json .#nixosConfigurations.macnix.config.system.build \
+            --apply 'builtins.attrNames' || true
+
           echo ""
           echo "=== dry-run del toplevel ==="
-          if nix build --dry-run --show-trace .#nixosConfigurations.macnix.config.system.build.toplevel > /tmp/eval.out 2>/tmp/eval.err; then
+          # `nix build --dry-run` calcula TODO lo que habría que construir sin
+          # construir: es la forma fiable de validar la evaluación completa.
+          if nix build --dry-run --show-trace \
+               .#nixosConfigurations.macnix.config.system.build.toplevel \
+               > /tmp/eval.out 2>/tmp/eval.err; then
             echo "✅ Eval OK"
           else
             echo "❌ EVAL FALLÓ"
@@ -58,14 +99,17 @@ jobs:
             exit 1
           fi
 
-  # ============================================================
-  # FASE 2: BUILD COMPLETO (lento — solo manual)
-  # ============================================================
+  # ===========================================================================
+  # TRABAJO 2: BUILD COMPLETO (lento — solo manual)
+  # ===========================================================================
   build:
     name: Compilar sistema completo (aarch64)
     runs-on: ubuntu-24.04-arm
+    # Hasta 5 horas: COSMIC + toolchains son pesados.
     timeout-minutes: 300
+    # Solo se ejecuta cuando lo lanzas a mano (workflow_dispatch).
     if: github.event_name == 'workflow_dispatch'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,7 +122,9 @@ jobs:
       - name: Compilar el sistema (toplevel)
         run: |
           git config --global --add safe.directory "$PWD"
-          nix build --print-build-logs .#nixosConfigurations.macnix.config.system.build.toplevel 2>&1 | tail -100
+          # Compila el sistema entero para aarch64-linux.
+          nix build --print-build-logs \
+            .#nixosConfigurations.macnix.config.system.build.toplevel 2>&1 | tail -100
 
       - name: Resultado
         run: |

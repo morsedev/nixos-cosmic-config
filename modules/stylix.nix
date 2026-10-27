@@ -1,21 +1,38 @@
+# =============================================================================
+# modules/stylix.nix  —  THEMING HOMOGÉNEO (Tokyo Night)
+# =============================================================================
+#
+# Stylix toma UN esquema de colores y lo aplica a TODAS las apps que puede:
+# GTK, Qt, terminales, navegadores, consola, fuentes, cursores...
+# Resultado: todo el escritorio con la misma paleta.
+#
+# El módulo de Stylix se importa en modules/nixos.nix
+# (`inputs.stylix.nixosModules.stylix`). Aquí solo se CONFIGURA.
+# =============================================================================
+
 { config, pkgs, lib, ... }:
 
 {
-  # ============ STYLIX — THEMING HOMOGÉNEO ============
-  # Un solo esquema de color (Tokyo Night) aplicado a: GTK, Qt, terminal,
-  # navegador, nvim, consola, etc.
   stylix = {
+    # Activa el theming global.
     enable = true;
 
-    # Esquema base16 Tokyo Night
+    # Esquema de colores base16 "Tokyo Night" (oscuro).
+    # `${...}` inserta la RUTA del archivo dentro del paquete `base16-schemes`.
+    # En NixOS, `${pkgs.algo}` = ruta en /nix/store de ese paquete.
     base16Scheme = "${pkgs.base16-schemes}/share/themes/tokyo-night-dark.yaml";
+
+    # Fuerza modo oscuro.
     polarity = "dark";
 
-    # Fuentes del sistema
+    # -------------------------------------------------------------------------
+    # FUENTES
+    # -------------------------------------------------------------------------
+    # Stylix instala y aplica estas fuentes en las apps.
     fonts = {
       monospace = {
-        package = pkgs.nerd-fonts.jetbrains-mono;
-        name = "JetBrainsMono Nerd Font";
+        package = pkgs.nerd-fonts.jetbrains-mono;   # fuente de código
+        name = "JetBrainsMono Nerd Font";           # nombre que usan las apps
       };
       sansSerif = {
         package = pkgs.inter;
@@ -29,6 +46,8 @@
         package = pkgs.noto-fonts-color-emoji;
         name = "Noto Color Emoji";
       };
+
+      # Tamaños (en puntos) por contexto.
       sizes = {
         terminal = 13;
         applications = 11;
@@ -37,11 +56,14 @@
       };
     };
 
-    # Targets: qué apps temar automáticamente
+    # -------------------------------------------------------------------------
+    # TARGETS (qué familias de apps se teman)
+    # -------------------------------------------------------------------------
+    # Stylix tiene "targets" para muchas apps. Aquí activamos los de sistema.
+    # Las apps de usuario (Ghostty, Zen, Neovim) se teman desde Home Manager.
     targets = {
-      gtk.enable = true;
-      qt.enable = true;
-      # Ghostty y Zen se teman vía sus módulos HM (siguen el esquema de Stylix)
+      gtk.enable = true;   # apps GTK (Nautilus, etc.)
+      qt.enable = true;    # apps Qt
     };
   };
 }
