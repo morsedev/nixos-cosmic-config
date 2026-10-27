@@ -44,6 +44,8 @@
         # --- Arranque ---
         "browser.startup.page" = 1;          # 1 = página en blanco
         "browser.startup.homepage" = "about:newtab";
+        # Si el navegador se cerró de golpe, no mostrar "restaurar sesión".
+        "browser.sessionstore.resume_from_crash" = false;
         "browser.newtabpage.activity-stream.showSponsored" = false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
         "browser.urlbar.suggest.quicksuggest.sponsored" = false;
@@ -239,6 +241,9 @@
         #reload-button,
         #stop-button,
         #star-button-box,
+        #identity-box,
+        #tracking-protection-icon-container,
+        #page-action-buttons,
         #fxa-toolbar-menu-button,
         #home-button,
         #library-button,
