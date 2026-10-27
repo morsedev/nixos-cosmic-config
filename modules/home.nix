@@ -30,8 +30,8 @@
     # Neovim como IDE (NixVim). Recibe `inputs` porque necesita inputs.nixvim.
     (import ./home/nvim.nix { inherit inputs; })
 
-    # Zen Browser. Recibe `inputs` porque necesita inputs.zen-browser.
-    (import ./home/browser.nix { inherit inputs; })
+    # Navegador (Firefox con interfaz minimalista).
+    ./home/browser.nix
 
     # Terminal Ghostty + Yazi.
     ./home/hyprland.nix
