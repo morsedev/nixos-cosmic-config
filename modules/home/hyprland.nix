@@ -22,8 +22,8 @@
 
       # --- Monitor: eDP-1 es la pantalla del portátil ---
       monitor = [
-        "eDP-1,preferred,auto,1.25"
-        ",preferred,auto,1"
+        "eDP-1,preferred,auto,1.25"   # pantalla principal (2560x1600)
+        "DSI-1,disable"               # Touch Bar: no usarla como monitor
       ];
 
       # --- Apariencia general ---

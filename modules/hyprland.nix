@@ -30,11 +30,44 @@
   # y ofrece la sesión de Hyprland. El tema Astronaut es el más vistoso.
   services.displayManager.sddm = {
     enable = true;
-    wayland.enable = true;
+    # Weston (greeter Wayland) debe usar la pantalla PRINCIPAL (eDP-1), no la
+    # Touch Bar (DSI-1). Le pasamos un weston.ini que fuerce eDP-1.
+    wayland = {
+      enable = true;
+      compositorCommand =
+        let
+          westonIni = pkgs.writeText "weston-sddm-main.ini" ''
+            [libinput]
+            enable-tap=true
+
+            [keyboard]
+            keymap_layout=us
+
+            [output]
+            name=eDP-1
+            mode=2560x1600
+          '';
+        in
+        "${pkgs.weston}/bin/weston --shell=kiosk -c ${westonIni}";
+    };
     theme = "sddm-astronaut-theme";
     extraPackages = [ pkgs.sddm-astronaut ];
   };
   services.displayManager.defaultSession = "hyprland";
+
+  # ---------------------------------------------------------------------------
+  # TOUCH BAR (tiny-dfr)
+  # ---------------------------------------------------------------------------
+  # En los MacBook Pro 13" M2 la Touch Bar es una pantalla DSI aparte. tiny-dfr
+  # la controla (fila de teclas de función, etc.) en vez de usarse como monitor.
+  hardware.apple.touchBar = {
+    enable = true;
+    settings = {
+      MediaLayerDefault = true;
+      ShowButtonOutlines = false;
+      EnablePixelShift = true;
+    };
+  };
 
   # PAM para poder desbloquear con hyprlock.
   security.pam.services.hyprlock = { };
