@@ -211,16 +211,17 @@
       dap.listeners.before.event_terminated.dapui_config = function() dapui.close() end
       dap.listeners.before.event_exited.dapui_config = function() dapui.close() end
 
-      -- codelldb para Rust/C/C++
-      dap.adapters.codelldb = {
-        type = "server",
-        port = "''${port}",
-        executable = { command = "codelldb", args = { "--port", "''${port}" } },
+      -- lldb-dap (viene con pkgs.lldb): Rust, C/C++ y Swift
+      dap.adapters.lldb = {
+        type = "executable",
+        command = "${pkgs.lldb}/bin/lldb-dap",
+        name = "lldb",
       }
+
       dap.configurations.rust = {
         {
           name = "Launch",
-          type = "codelldb",
+          type = "lldb",
           request = "launch",
           program = function()
             return vim.fn.input("Binario: ", vim.fn.getcwd() .. "/target/debug/", "file")
@@ -232,11 +233,10 @@
       dap.configurations.c = dap.configurations.rust
       dap.configurations.cpp = dap.configurations.rust
 
-      -- Swift (lldb)
       dap.configurations.swift = {
         {
           name = "Launch",
-          type = "codelldb",
+          type = "lldb",
           request = "launch",
           program = function()
             return vim.fn.input("Binario Swift: ", vim.fn.getcwd() .. "/.build/debug/", "file")
@@ -248,8 +248,7 @@
 
     # ============ Paquetes externos (LSP/DAP/formaters) ============
     extraPackages = with pkgs; [
-      codelldb
-      lldb
+      lldb              # incluye lldb-dap (debugger para Rust/Swift/C/C++)
       nixpkgs-fmt
       stylua
       nodePackages.prettier
