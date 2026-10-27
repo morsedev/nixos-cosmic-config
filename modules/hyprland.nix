@@ -59,7 +59,11 @@
   #  - /share/glib-2.0/schemas -> esquemas de GNOME (modo oscuro en GTK4)
   environment.pathsToLink = [
     "/share/sddm/themes"
-    "/share/glib-2.0/schemas"
+    # GLib busca los esquemas compilados en
+    # $XDG_DATA_DIRS/gsettings-schemas/<paquete>/glib-2.0/schemas.
+    # Enlazando esta carpeta, gsettings encuentra org.gnome.desktop.interface
+    # y el portal puede responder "el escritorio es oscuro".
+    "/share/gsettings-schemas"
   ];
 
   # dconf a nivel de SISTEMA (además del de Home Manager). Es lo que permite
