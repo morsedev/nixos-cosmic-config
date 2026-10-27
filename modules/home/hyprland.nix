@@ -228,7 +228,10 @@ in
 
         # Icono de red y diálogos de permisos.
         "nm-applet --indicator"
-        "/run/current-system/sw/libexec/polkit-gnome-authentication-agent-1"
+        # Agente de polkit: es el diálogo que pide la contraseña cuando algo
+        # necesita permisos (cambiar la hora, la zona horaria, etc.).
+        # Hay que usar la ruta del paquete: en el perfil del sistema no existe.
+        "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
 
         # Guardar el portapapeles en el historial (sin esto `Super+C` sale vacío).
         "wl-paste --type text --watch cliphist store"
