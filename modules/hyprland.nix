@@ -113,10 +113,54 @@
   # la controla (fila de teclas de función, etc.) en vez de usarse como monitor.
   hardware.apple.touchBar = {
     enable = true;
+
+    # -------------------------------------------------------------------------
+    # QUÉ SE VE EN LA TOUCH BAR
+    # -------------------------------------------------------------------------
+    # tiny-dfr (versión 0.3.7) permite elegir los botones, y además soporta
+    # widgets EN VIVO: reloj (Time) y batería (Battery).
+    #
+    # El panel mide 2170x60 px: caben ~12 "huecos" de botón. `Stretch` hace que
+    # un botón ocupe varios huecos.
+    #
+    # Aquí: brillo, volumen, play/pausa, RELOJ (2 huecos), BATERÍA (2 huecos) y
+    # tres accesos directos que envían atajos a Hyprland:
+    #   Term -> Super+Enter  (Ghostty)
+    #   Apps -> Super+D      (Walker)
+    #   Shot -> Super+S      (captura de pantalla)
     settings = {
+      # Arrancar en la capa multimedia (sin tener que pulsar Fn).
       MediaLayerDefault = true;
+      # Sin recuadros alrededor de cada botón: queda más limpio.
       ShowButtonOutlines = false;
+      # Mueve el contenido unos píxeles cada cierto tiempo (longevidad del panel).
       EnablePixelShift = true;
+      # Fuente en negrita para que se lea bien a 60 px de alto.
+      FontTemplate = ":bold";
+      # El brillo sigue al de la pantalla, con un máximo más alto para que se vea.
+      AdaptiveBrightness = true;
+      ActiveBrightness = 200;
+      # Doble pulsación de Fn (200 ms) para cambiar entre capas.
+      DoublePressSwitchLayers = 200;
+
+      # Capa multimedia = la que se ve por defecto.
+      MediaLayerKeys = [
+        { Icon = "brightness_low";  Action = "BrightnessDown"; }
+        { Icon = "brightness_high"; Action = "BrightnessUp"; }
+        { Icon = "volume_down";     Action = "VolumeDown"; }
+        { Icon = "volume_up";       Action = "VolumeUp"; }
+        { Icon = "play_pause";      Action = "PlayPause"; }
+
+        # Widgets en vivo
+        { Time = "%H:%M";           Action = "Time";    Stretch = 2; }
+        { Battery = "both";         Action = "Battery"; Stretch = 2; }
+
+        # Atajos de Hyprland
+        { Text = "Term"; Action = [ "LeftMeta" "Return" ]; }
+        { Text = "Apps"; Action = [ "LeftMeta" "D" ]; }
+        { Text = "Shot"; Action = [ "LeftMeta" "S" ]; }
+      ];
+      # La capa de teclas F1–F12 se deja la de fábrica (se accede con Fn).
     };
   };
 
