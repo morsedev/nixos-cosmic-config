@@ -16,7 +16,6 @@ env:
 jobs:
   # ============================================================
   # FASE 1: EVALUACIÓN (rápida, en cada push)
-  # Detecta sintaxis, opciones inexistentes, paquetes rotos, etc.
   # ============================================================
   eval:
     name: Evaluar configuración
@@ -25,34 +24,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # evitar problemas de flake con clones shallow
 
       - name: Instalar Nix (Determinate)
         uses: DeterminateSystems/nix-installer-action@v13
 
-      - name: Stub hardware-configuration.nix (solo CI)
+      - name: Diagnóstico de salidas
         run: |
-          cat > hardware-configuration.nix <<'EOF'
-          { config, lib, pkgs, ... }:
-          {
-            fileSystems."/" = { device = "/dev/null"; fsType = "ext4"; };
-            boot.loader.systemd-boot.enable = lib.mkForce false;
-          }
-          EOF
-          # Los flakes solo ven archivos trackeados por git
-          git add -A hardware-configuration.nix
+          git config --global --add safe.directory "$PWD"
+          echo "=== attrNames de nixosConfigurations ==="
+          nix eval --json .#nixosConfigurations --apply 'builtins.attrNames' || true
+          echo "=== attrNames de macnix ==="
+          nix eval --json .#nixosConfigurations.macnix --apply 'builtins.attrNames' || true
 
       - name: Evaluar la configuración completa
         run: |
           set -o pipefail
-          echo "=== Sanity: hostName ==="
+          echo "=== hostName ==="
           nix eval .#nixosConfigurations.macnix.config.networking.hostName --raw
           echo ""
-          echo "=== Evaluación del toplevel ==="
+          echo "=== drvPath del toplevel ==="
           if nix eval --show-trace .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw > /tmp/eval.out 2>/tmp/eval.err; then
             echo "✅ Eval OK: $(cat /tmp/eval.out)"
           else
             echo "❌ EVAL FALLÓ"
-            echo "--- últimos errores ---"
             grep -n "error:" /tmp/eval.err | tail -5
             echo "--- tail del trace ---"
             tail -70 /tmp/eval.err
@@ -61,7 +57,6 @@ jobs:
 
   # ============================================================
   # FASE 2: BUILD COMPLETO (lento — solo manual)
-  # Compila el sistema entero para aarch64-linux nativamente.
   # ============================================================
   build:
     name: Compilar sistema completo (aarch64)
@@ -71,24 +66,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Instalar Nix (Determinate)
         uses: DeterminateSystems/nix-installer-action@v13
 
-      - name: Stub hardware-configuration.nix (solo CI)
-        run: |
-          cat > hardware-configuration.nix <<'EOF'
-          { config, lib, pkgs, ... }:
-          {
-            fileSystems."/" = { device = "/dev/null"; fsType = "ext4"; };
-            boot.loader.systemd-boot.enable = lib.mkForce false;
-          }
-          EOF
-          git add -A hardware-configuration.nix
-
       - name: Compilar el sistema (toplevel)
         run: |
-          nix build .#nixosConfigurations.macnix.config.system.build.toplevel --print-build-logs 2>&1 | tail -100
+          git config --global --add safe.directory "$PWD"
+          nix build --print-build-logs .#nixosConfigurations.macnix.config.system.build.toplevel 2>&1 | tail -100
 
       - name: Resultado
         run: |
