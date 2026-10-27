@@ -66,5 +66,16 @@
       gtk.enable = true;   # apps GTK (Nautilus, etc.)
       qt.enable = true;    # apps Qt
     };
+
+    # -------------------------------------------------------------------------
+    # AUTO-TARGETS
+    # -------------------------------------------------------------------------
+    # Stylix activa SOLO sus targets (hyprland, waybar, starship, ghostty...)
+    # cuando detecta que el programa está instalado. Como nosotros escribimos a
+    # mano el estilo de Hyprland, la barra, el prompt y la terminal, esa
+    # temización automática choca (dos definiciones para la misma opción) y la
+    # build falla. Con `autoEnable = false` Stylix se limita a GTK y Qt, que es
+    # justo lo que queremos: el resto lo controlamos nosotros.
+    autoEnable = false;
   };
 }
