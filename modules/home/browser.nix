@@ -55,7 +55,7 @@
         # barra de direcciones. Por eso aquí va en FALSE: la barra de
         # direcciones se queda arriba, siempre visible.
         "zen.view.use-single-toolbar" = false;
-        "zen.view.sidebar-expanded" = false;
+        "zen.view.sidebar-expanded" = true;
         "zen.view.show-newtab-button-top" = false;
         "zen.view.hide-window-controls" = false;
         # Zen: modo compacto activado desde el arranque.
@@ -118,6 +118,23 @@
         }
 
         /* --- Barra de direcciones ---------------------------------------- */
+        /* Zen colapsa el campo a 0px cuando la barra lateral está plegada.
+           Forzamos su ancho para que siempre sea visible. */
+        #nav-bar {
+          display: flex !important;
+          min-height: 38px !important;
+        }
+        #nav-bar-customization-target {
+          display: flex !important;
+          flex: 1 1 auto !important;
+        }
+        #urlbar-container {
+          flex: 1 1 auto !important;
+          min-width: 320px !important;
+          width: auto !important;
+        }
+        #urlbar { min-width: 320px !important; }
+
         #urlbar-background {
           background: var(--tn-bg2) !important;
           border: 1px solid var(--tn-border) !important;
