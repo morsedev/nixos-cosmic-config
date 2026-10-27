@@ -55,7 +55,6 @@
   };
 
   # Enlazar los temas de SDDM en el perfil del sistema (si no, no aparecen).
-  environment.systemPackages = [ pkgs.sddm-astronaut ];
   environment.pathsToLink = [ "/share/sddm/themes" ];
   services.displayManager.defaultSession = "hyprland";
 
@@ -91,6 +90,7 @@
   # ---------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
     # --- Componentes del ricing ---
+    sddm-astronaut      # tema gráfico del login
     waybar              # barra superior
     wofi                # lanzador de aplicaciones
     mako                # notificaciones
