@@ -104,8 +104,9 @@
           --tn-blue:   #7aa2f7;
         }
 
-        /* --- Pestañas horizontales y marcadores: fuera ------------------- */
-        #TabsToolbar,
+        /* --- Marcadores: fuera ------------------------------------------- */
+        /* OJO: NO ocultar #TabsToolbar. En Zen la barra de direcciones está
+           dentro de esa barra; si se oculta, desaparece el campo de URL. */
         #PersonalToolbar { display: none !important; }
 
         /* --- Barra superior ---------------------------------------------- */
