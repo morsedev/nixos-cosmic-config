@@ -135,6 +135,29 @@
         box-shadow: none !important;
       }
 
+      /* --- Iconos simbólicos (monocromos) ---
+         Los iconos "a color" (carpetas azul brillante, el archivador verde de
+         File Roller...) rompen la paleta. Los pasamos a simbólicos SOLO en
+         los sitios donde quedan bien: cabeceras, barras, sidebars y estados
+         vacíos. Así no tocamos los iconos de apps en menús. */
+      headerbar image,
+      toolbar image,
+      .navigation-sidebar image,
+      list.navigation-sidebar image,
+      .status-page image,
+      .empty-state image {
+        -gtk-icon-style: symbolic;
+      }
+
+      /* --- Tipografía de pestañas ---
+         Con Inter 12 algunas pestañas se cortaban ("Output Devic…").
+         Un poco más pequeñas entran completas. */
+      notebook tab label,
+      viewswitcher button > label,
+      viewswitcher label {
+        font-size: 0.86em;
+      }
+
       /* Sidebar de navegación (Ajustes, Nautilus, etc.) siempre oscuro,
          también cuando la ventana pierde el foco. */
       .navigation-sidebar,
