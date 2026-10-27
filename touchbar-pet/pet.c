@@ -335,6 +335,9 @@ static void blit(struct panel *p) {
             *(uint32_t *)dst = c;
         }
     }
+    /* Sin esto el kernel no envía los píxeles al panel (es lo que hace
+       tiny-dfr con `dirty_framebuffer`). */
+    drmModeDirtyFB(p->fd, p->fb, NULL, 0);
 }
 
 /* ------------------------------------------------------------------------- */
