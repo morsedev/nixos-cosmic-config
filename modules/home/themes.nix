@@ -70,7 +70,13 @@
       @define-color borders #292e42;
 
       headerbar, .titlebar { background: #16161e; color: #c0caf5; }
-      button { border-color: #292e42; }
+      headerbar label, .titlebar label { color: #c0caf5; }
+      button {
+        background: #1f2335;
+        color: #c0caf5;
+        border: 1px solid #292e42;
+      }
+      button:hover { background: #292e42; }
       tooltip { background: #1f2335; color: #c0caf5; }
     '';
 
@@ -94,6 +100,16 @@
       @define-color popover_bg_color #1f2335;
       @define-color dialog_bg_color #1a1b26;
       @define-color borders #292e42;
+
+      /* Botones normales: fondo de tarjeta, texto claro (si no, quedan
+         "fantasma" sobre el fondo oscuro). */
+      button:not(.suggested-action):not(.destructive-action) {
+        background: #1f2335;
+        color: #c0caf5;
+      }
+      button:not(.suggested-action):not(.destructive-action):hover {
+        background: #292e42;
+      }
     '';
 
     # Lo mismo para apps GTK4 (Nautilus nuevo, diálogos modernos...).

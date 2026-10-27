@@ -501,9 +501,10 @@ in
       }
       #entry:selected,
       #entry:selected #text {
-        background: rgba(122, 162, 247, 0.22);
-        color: #c0caf5;
+        background: #7aa2f7;
+        color: #16161e;
         border-radius: 8px;
+        font-weight: 600;
       }
       #outer-box { padding: 8px; }
       #text { color: inherit; }
