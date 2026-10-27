@@ -77,7 +77,12 @@
   # dconf a nivel de SISTEMA (además del de Home Manager). Es lo que permite
   # que las apps GTK4 lean "prefer-dark" y se pinten en oscuro.
   programs.dconf.enable = true;
-  services.displayManager.defaultSession = "hyprland-uwsm";
+  # Sesión de Hyprland "simple" (sin UWSM). UWSM añade systemd, pero en este
+  # equipo su estado se corrompe entre sesiones y a veces impide arrancar el
+  # compositor ("A compositor is already active"). Los programas de la sesión
+  # (barra, notificaciones, lanzador...) se lanzan con `exec-once`, así que no
+  # necesitamos UWSM.
+  services.displayManager.defaultSession = "hyprland";
 
   # ---------------------------------------------------------------------------
   # FONDOS DE PANTALLA
