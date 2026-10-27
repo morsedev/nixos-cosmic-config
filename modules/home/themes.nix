@@ -119,6 +119,20 @@
         background: #292e42;
       }
 
+      /* Controles segmentados / botones activos: libadwaita los pintaba
+         BLANCOS (p. ej. el selector "24 horas" de Ajustes). */
+      button:checked,
+      button:checked:hover,
+      .linked > button:checked,
+      .linked > button:checked:hover,
+      segmentedbutton > button:checked,
+      togglebutton:checked {
+        background-color: #292e42 !important;
+        background-image: none !important;
+        color: #c0caf5 !important;
+        box-shadow: none !important;
+      }
+
       /* Sidebar de navegación (Ajustes, Nautilus, etc.) siempre oscuro,
          también cuando la ventana pierde el foco. */
       .navigation-sidebar,
