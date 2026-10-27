@@ -27,7 +27,7 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
-#define W 2008
+#define W 2048
 #define H 60
 
 static uint32_t canvas[W * H];
