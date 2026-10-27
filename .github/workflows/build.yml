@@ -43,11 +43,21 @@ jobs:
 
       - name: Evaluar la configuración completa
         run: |
-          echo "=== Salidas del flake ==="
-          nix flake show --all-systems --no-write-lock-file 2>&1 | tail -25 || true
-          echo "=== Evaluación ==="
-          nix eval --show-trace .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw 2>&1 | tail -40
-          echo "✅ La configuración evalúa correctamente"
+          set -o pipefail
+          echo "=== Sanity: hostName ==="
+          nix eval .#nixosConfigurations.macnix.config.networking.hostName --raw
+          echo ""
+          echo "=== Evaluación del toplevel ==="
+          if nix eval --show-trace .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw > /tmp/eval.out 2>/tmp/eval.err; then
+            echo "✅ Eval OK: $(cat /tmp/eval.out)"
+          else
+            echo "❌ EVAL FALLÓ"
+            echo "--- últimos errores ---"
+            grep -n "error:" /tmp/eval.err | tail -5
+            echo "--- tail del trace ---"
+            tail -70 /tmp/eval.err
+            exit 1
+          fi
 
   # ============================================================
   # FASE 2: BUILD COMPLETO (lento — solo manual)
