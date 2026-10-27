@@ -8,7 +8,6 @@ queda desactualizado.
 Se abre con:  Super + /
 """
 
-import json
 import subprocess
 
 # ---------------------------------------------------------------------------
