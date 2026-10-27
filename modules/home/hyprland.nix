@@ -31,9 +31,7 @@
         gaps_in = 5;
         gaps_out = 15;
         border_size = 2;
-        # Borde activo con degradado Tokyo Night (azul → morado)
-        "col.active_border" = "rgba(7aa2f7ee) rgba(bb9af7ee) 45deg";
-        "col.inactive_border" = "rgba(1a1b26aa)";
+        # (los colores del borde los pone Stylix automáticamente — Tokyo Night)
         layout = "dwindle";
         resize_on_border = true;
         allow_tearing = false;
@@ -50,7 +48,7 @@
           enabled = true;
           range = 20;
           render_power = 3;
-          color = "rgba(1a1b26ee)";
+          # (el color de la sombra lo pone Stylix)
         };
 
         blur = {
@@ -124,7 +122,7 @@
       bind = [
         # Terminal / lanzador / archivos
         "$mod, RETURN, exec, ghostty"
-        "$mod, D, exec, wofi --show drun"
+        "$mod, D, exec, walker"
         "$mod, E, exec, nautilus"
         "$mod, Q, killactive,"
         "$mod, M, exit,"

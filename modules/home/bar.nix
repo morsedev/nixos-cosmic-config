@@ -50,7 +50,7 @@
       "custom/launcher" = {
         format = "";
         tooltip = false;
-        on-click = "wofi --show drun";
+        on-click = "walker";
       };
 
       # Workspaces de Hyprland como puntitos
@@ -243,6 +243,92 @@
       }
       tooltip label { color: #c0caf5; }
     '';
+  };
+
+  # ===========================================================================
+  # WALKER + ELEPHANT (lanzador de apps, Wayland nativo y precioso)
+  # ===========================================================================
+  # Elephant es el "proveedor" de datos (apps, archivos, etc.) que usa Walker.
+  services.elephant.enable = true;
+
+  services.walker = {
+    enable = true;
+    systemd.enable = true;
+    enableElephantIntegration = true;
+
+    settings = {
+      close_when_open = true;
+      disable_click_to_close = false;
+      force_keyboard_focus = true;
+      hotreload_theme = false;
+      timeout = 0;
+    };
+
+    # Tema Tokyo Night (GTK CSS)
+    theme = {
+      name = "tokyo-night";
+      style = ''
+        @define-color window_bg_color #1a1b26;
+        @define-color accent_bg_color #7aa2f7;
+        @define-color theme_fg_color #c0caf5;
+        @define-color error_bg_color #f7768e;
+        @define-color error_fg_color #c0caf5;
+
+        * { all: unset; font-family: "JetBrainsMono Nerd Font", sans-serif; }
+
+        popover {
+          background: rgba(26, 27, 38, 0.97);
+          border: 1px solid rgba(122, 162, 247, 0.35);
+          border-radius: 20px;
+          padding: 10px;
+        }
+
+        .box-wrapper {
+          box-shadow: 0 19px 38px rgba(0,0,0,0.45), 0 15px 12px rgba(0,0,0,0.30);
+          background: @window_bg_color;
+          padding: 20px;
+          border-radius: 20px;
+          border: 1px solid rgba(122, 162, 247, 0.35);
+        }
+
+        .preview-box, .elephant-hint, .placeholder { color: @theme_fg_color; }
+
+        .input {
+          caret-color: @theme_fg_color;
+          background: #24283b;
+          padding: 12px 14px;
+          border-radius: 12px;
+          color: @theme_fg_color;
+          font-size: 15px;
+        }
+        .input placeholder { opacity: 0.45; }
+        .input selection { background: rgba(122,162,247,0.35); }
+
+        .list { color: @theme_fg_color; }
+        .item-box { border-radius: 12px; padding: 10px; margin: 2px 0; }
+        child:selected .item-box, row:selected .item-box {
+          background: linear-gradient(45deg, rgba(122,162,247,0.85), rgba(187,154,247,0.85));
+          color: #1a1b26;
+        }
+        .item-text-box { font-size: 14px; }
+        .item-subtext { font-size: 12px; opacity: 0.55; }
+        .item-image-text { font-size: 28px; }
+
+        .preview {
+          border: 1px solid rgba(122,162,247,0.3);
+          border-radius: 12px;
+          color: @theme_fg_color;
+        }
+        .keybinds {
+          padding-top: 10px;
+          border-top: 1px solid rgba(122,162,247,0.2);
+          font-size: 12px;
+          color: @theme_fg_color;
+        }
+        .keybind-label { padding: 2px 4px; border-radius: 4px; border: 1px solid @theme_fg_color; }
+        .error { padding: 10px; background: @error_bg_color; color: @error_fg_color; border-radius: 10px; }
+      '';
+    };
   };
 
   # ===========================================================================
