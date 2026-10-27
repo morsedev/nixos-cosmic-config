@@ -12,6 +12,14 @@
 
 {
   # ---------------------------------------------------------------------------
+  # SHELL DEL SISTEMA
+  # ---------------------------------------------------------------------------
+  # El usuario usa zsh como shell de login (Home Manager lo configura con
+  # starship, aliases, etc.). NixOS exige tener zsh habilitado en el sistema
+  # para que el PATH de login sea correcto.
+  programs.zsh.enable = true;
+
+  # ---------------------------------------------------------------------------
   # HYPRLAND
   # ---------------------------------------------------------------------------
   programs.hyprland = {
