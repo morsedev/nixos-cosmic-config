@@ -3,8 +3,8 @@
 {
   home-manager.users.macnix = { pkgs, ... }: {
     imports = [
-      # Módulo HM de Stylix — para temar terminal, navegador, nvim desde el usuario
-      inputs.stylix.homeModules.stylix
+      # NOTA: Stylix integra su módulo HM automáticamente desde el módulo NixOS
+      # (homeManagerIntegration), así que NO lo importamos aquí manualmente.
       ./home/nvim.nix
       ./home/terminal.nix
       ./home/browser.nix
