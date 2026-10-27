@@ -487,28 +487,6 @@
         hide_cursor = true;
         grace = 0;
       };
-      background = [{
-        monitor = "";
-        color = "rgba(26, 27, 38, 1.0)";
-        blur_passes = 0;
-      }];
-      input-field = [{
-        monitor = "";
-        size = "280, 60";
-        outline_thickness = 2;
-        dots_size = 0.25;
-        dots_spacing = 0.3;
-        dots_center = true;
-        outer_color = "rgba(122, 162, 247, 0.7)";
-        inner_color = "rgba(36, 40, 59, 0.9)";
-        font_color = "rgb(c0caf5)";
-        placeholder_text = "Contraseña…";
-        fail_text = "Error";
-        rounding = 14;
-        position = "0, -80";
-        halign = "center";
-        valign = "center";
-      }];
       label = [
         {
           monitor = "";
