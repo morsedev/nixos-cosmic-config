@@ -63,7 +63,18 @@
 
         # --- Página de inicio limpia ---
         "browser.startup.homepage" = "about:blank";
-        "browser.startup.page" = 3;                 # restaurar sesión anterior
+        # 1 = página en blanco. (3 = restaurar sesión, pero si una pestaña
+        # crasheó, se queda crasheando en cada arranque.)
+        "browser.startup.page" = 1;
+
+        # --- Estabilidad en Apple Silicon / Asahi ---
+        # La aceleración por GPU hace crashear el proceso de contenido de Zen
+        # en este equipo ("Gah. Your tab just crashed"). Con WebRender por
+        # software va fino; el navegador se nota algo menos fluido pero estable.
+        "gfx.webrender.software" = true;
+        "gfx.webrender.all" = false;
+        "layers.acceleration.disabled" = true;
+        "media.ffmpeg.vaapi.enabled" = false;
         # Sin contenido patrocinado en la página nueva.
         "browser.newtabpage.activity-stream.showSponsored" = false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
