@@ -1,137 +1,126 @@
 # NixOS para MacBook Air M2 (Apple Silicon)
 
-Configuración **custom** de NixOS para Apple Silicon con:
+Configuración **custom** de NixOS para Apple Silicon, empaquetada **como módulos
+al estilo nixarchy**. Incluye:
 
-- **COSMIC** (escritorio Rust/Wayland) con **tiling** integrado (Super+T alterna tiling↔floating)
-- **Neovim (NixVim)** como IDE completo, estilo *kickstart*:
+- **COSMIC** (escritorio Rust/Wayland) con **tiling** integrado (`Super+T`)
+- **Neovim (NixVim)** como IDE, estilo *kickstart*:
   - LSP: Rust, Nix, Flutter/Dart, Python, TypeScript, Lua, C/C++
-  - **DAP UI** con breakpoints (F5/F10/F11/F12, `<leader>b`)
-  - Telescope (buscar archivos/texto), Neo-tree (árbol de archivos), cmp (autocompletado)
-  - Formateo con `<leader>f`
-- **Theming homogéneo** con **Stylix** + **Tokyo Night** (GTK, Qt, terminal, navegador, fuentes, cursores)
-- **Zen Browser**, **Ghostty** (terminal), **Yazi** (TUI) + **Nautilus** (GUI)
-- Toolchain de desarrollo: Rust, Flutter/Dart, Python, Node/TS, C/C++, Docker, git, etc.
-- **GitHub Action** que valida que todo evalúa (y compila, bajo demanda) en un runner ARM64
+  - **DAP UI** con breakpoints (`F5/F10/F11/F12`, `<leader>b`)
+  - Telescope (buscar archivos/texto), Neo-tree (árbol), cmp (autocompletado)
+- **Theming homogéneo** con **Stylix** + **Tokyo Night**
+- **Zen Browser**, **Ghostty**, **Yazi** + **Nautilus**
+- Toolchain: Rust, Flutter/Dart, Python, Node/TS, C/C++, Docker...
+- **GitHub Action** que valida que todo evalúa (y compila, bajo demanda) en ARM64
 
-> ⚠️ **Swift**: `pkgs.swift` está marcado *broken* en `aarch64-linux` en nixpkgs.
-> Para Swift, instala el toolchain oficial de [swift.org](https://www.swift.org/install/linux/)
-> (tarball ARM64) o usa un contenedor. Ver [Swift](#swift).
+> 📚 **¿No sabes Nix?** Lee [`NIX-PRIMER.md`](NIX-PRIMER.md): explica la sintaxis,
+> qué es un módulo, un flake, `mkDefault`, etc. Y **todos los archivos están
+> comentados** línea a línea para principiantes.
 
 ---
 
-## Requisitos
+## Usarlo como módulo (como nixarchy) — la forma recomendada
 
-- MacBook Air M2 (o similar) con el **entorno UEFI de Asahi ya instalado**
-  (pasos previos: instalador de Asahi → UEFI only → modo permissive).
-- NixOS ya instalado y funcionando.
+Tu `/etc/nixos/flake.nix` (el que ya tienes) solo cambia **una línea**:
 
-## Cómo usarlo en tu Mac
-
-El repo es la configuración *excepto* los archivos propios de tu máquina:
-`hardware-configuration.nix` y `vendorfw/`.
-
-### 1. Clona el repo
-
-```bash
-sudo git clone https://github.com/morsedev/nixos-cosmic-config.git ~/nixos-cosmic-config
+```nix
+inputs.nixarchy.url = "github:morsedev/nixos-cosmic-config";
 ```
 
-### 2. Copia la configuración a `/etc/nixos` **sin pisar** tus archivos de máquina
+Y el resto se queda igual:
 
-```bash
-# Haz backup de tu config actual
-sudo cp -r /etc/nixos /etc/nixos.bak
-
-# Copia flake + configuración + módulos
-sudo cp ~/nixos-cosmic-config/flake.nix        /etc/nixos/
-sudo cp ~/nixos-cosmic-config/configuration.nix /etc/nixos/
-sudo rm -rf /etc/nixos/modules
-sudo cp -r ~/nixos-cosmic-config/modules       /etc/nixos/
+```nix
+modules = [
+  ./configuration.nix                      # tu hardware, apple-silicon, red...
+  nixarchy.nixosModules.nixarchy           # ← módulo de sistema (COSMIC, dev, stylix)
+  home-manager.nixosModules.home-manager
+  {
+    hooks... = ...;
+    home-manager.users.macnix = {
+      imports = [ nixarchy.homeModules.nixarchy ];   # ← módulo de usuario
+      programs.nixarchy.enable = true;
+    };
+  }
+];
 ```
 
-**IMPORTANTE**: **NO** copies `hardware-configuration.nix` del repo (es un stub
-para CI). Debes **conservar el tuyo**, generado por el instalador. Tampoco borres
-tu carpeta `vendorfw/` (firmware del ESP).
+> El módulo de Home Manager también está expuesto como
+> `nixarchy.homeManagerModules.nixarchy` por compatibilidad.
 
-### 3. Ajusta tus datos
+**Tu `configuration.nix` debe seguir aportando** lo específico de la máquina:
+`hardware.asahi.enable`, `boot.loader`, el usuario, `networking.networkmanager`
+y la importación del soporte Apple Silicon (`./apple-silicon-support` o el input).
 
-En `configuration.nix` / `modules/system.nix`:
-- `networking.hostName` (por defecto `macnix`)
-- `users.users.macnix` (cambia el usuario si quieres)
-- Zona horaria (`time.timeZone`) y locale
-- Red WiFi en `modules/system.nix` (descomenta y pon tu SSID/contraseña)
-
-### 4. Build
+Luego:
 
 ```bash
 cd /etc/nixos
-sudo nixos-rebuild switch --flake .#macnix
+sudo nixos-rebuild switch --flake .#tu-hostname
 ```
 
-> La primera vez tarda bastante (compila COSMIC, nixvim, etc.). Si tienes 8 GB
-> de RAM, ya hay `max-jobs = 1` y `zramSwap` para evitar OOM.
+### Qué aporta cada módulo
 
-### 5. Reinicia y elige COSMIC
+| Módulo | Contenido |
+|---|---|
+| `nixosModules.nixarchy` | Stylix, COSMIC + greeter, audio/bluetooth/fuentes, herramientas de desarrollo |
+| `homeModules.nixarchy` | NixVim, Ghostty, Yazi, Zen, zsh/starship/zoxide/direnv, cursores |
+
+---
+
+## Usarlo como configuración completa
+
+Si prefieres el sistema entero de este repo (incluye Apple Silicon, red,
+usuario...), usa la salida `nixosConfigurations.macnix`:
 
 ```bash
-sudo reboot
+sudo git clone https://github.com/morsedev/nixos-cosmic-config.git ~/nixos-cosmic-config
+# Copia flake.nix, configuration.nix y modules/ a /etc/nixos
+# ⚠️ CONSERVA tu hardware-configuration.nix real y tu carpeta vendorfw/
+cd /etc/nixos
+sudo nixos-rebuild switch --flake .#macnix
 ```
-
-En el greeter elige la sesión **COSMIC**.
 
 ---
 
 ## Estructura
 
 ```
-flake.nix                 # inputs: nixpkgs, home-manager, stylix, zen-browser, nixvim, apple-silicon
-configuration.nix         # sistema: Apple Silicon, boot, red, nix, swap, memoria
+flake.nix                   # inputs + outputs (módulos y nixosConfigurations.macnix)
+configuration.nix           # lo específico de la máquina (Apple Silicon, boot, red, usuario)
 modules/
-  system.nix              # red, audio (pipewire), bluetooth, usuarios, locale
-  cosmic.nix              # COSMIC + tiling + fuentes + apps GUI
-  development.nix         # toolchains (rust, flutter/dart, python, node, c/c++, docker...)
-  users.nix               # Home Manager del usuario
-  stylix.nix              # theming Tokyo Night
+  nixos.nix                 # nixosModules.nixarchy (perfil de sistema)
+  home.nix                  # homeModules.nixarchy (perfil de usuario)
+  system-profile.nix        # audio, bluetooth, fuentes, portales (mkDefault)
+  cosmic.nix                # escritorio COSMIC + apps GUI
+  development.nix           # toolchains y utilidades de dev
+  stylix.nix                # tema Tokyo Night
   home/
-    nvim.nix              # NixVim (IDE kickstart-style)
-    terminal.nix          # Ghostty + Yazi
-    shell.nix             # zsh + starship + zoxide + direnv + aliases
-    browser.nix           # Zen Browser
-    files.nix             # Nautilus
-    themes.nix            # cursor
+    nvim.nix                # NixVim (IDE kickstart-style)
+    terminal.nix            # Ghostty + Yazi
+    shell.nix               # zsh + starship + zoxide + direnv
+    browser.nix             # Zen Browser
+    files.nix               # Nautilus
+    themes.nix              # cursores
 hardware-configuration.nix  # stub SOLO para CI (no usar en el Mac)
+NIX-PRIMER.md               # explicación de Nix de cero
 ```
 
 ---
 
 ## Swift
 
-`pkgs.swift` no evalúa en `aarch64-linux` (marcado *broken* en nixpkgs). Opciones:
-
-1. **Toolchain oficial** (recomendado):
-   ```bash
-   # Descarga el tarball ARM64 de swift.org, descomprime en ~/swift
-   export PATH="$HOME/swift/usr/bin:$PATH"
-   # SourceKit-LSP viene incluido: ~/swift/usr/bin/sourcekit-lsp
-   ```
-   Luego añade `sourcekit` a NixVim:
-   ```nix
-   plugins.lsp.servers.sourcekit = {
-     enable = true;
-     package = null;          # usar el del PATH
-   };
-   ```
-
-2. **Contenedor**: usa un `distrobox`/`podman` con la imagen oficial de Swift.
+`pkgs.swift` está marcado *broken* en `aarch64-linux` en nixpkgs. Instala el
+toolchain oficial de [swift.org](https://www.swift.org/install/linux/) (tarball
+ARM64) y añade `sourcekit` a NixVim apuntando a ese binario.
 
 ---
 
 ## CI (GitHub Actions)
 
-- **En cada push**: job `eval` → `nix build --dry-run` (valida que todo evalúa para aarch64-linux).
-- **Manual** (`Actions → Run workflow`): job `build` → compila el sistema completo.
+- **En cada push**: job `eval` → `nix build --dry-run` (valida la evaluación).
+- **Manual** (`Actions → Run workflow`): job `build` → compila el sistema.
 
-Esto verifica antes de tocar el Mac. El runner es `ubuntu-24.04-arm` (ARM64 nativo).
+Runner: `ubuntu-24.04-arm` (ARM64 nativo).
 
 ---
 
@@ -140,5 +129,5 @@ Esto verifica antes de tocar el Mac. El runner es `ubuntu-24.04-arm` (ARM64 nati
 ```bash
 cd /etc/nixos
 sudo nix flake update
-sudo nixos-rebuild switch --flake .#macnix
+sudo nixos-rebuild switch --flake .#tu-hostname
 ```
