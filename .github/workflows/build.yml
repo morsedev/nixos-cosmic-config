@@ -4,26 +4,24 @@ on:
   push:
     branches: [main]
   pull_request:
-  workflow_dispatch: # botón "Run workflow" para validar manualmente
+  workflow_dispatch: # botón "Run workflow" para validar el build completo
 
 env:
-  # Cachés para acelerar los builds
   NIX_CONFIG: |
-    extra-substituters = https://cache.nixos.org https://cosmic.cachix.org
-    extra-trusted-public-keys = cosmic.cachix.org-1:Dya9IyXD4xd0hV8x1JsDd3CgE6GP5gDdhI5rAeBMKfs=
+    extra-substituters = https://cache.nixos.org https://cosmic.cachix.org https://nix-community.cachix.org
+    extra-trusted-public-keys = cosmic.cachix.org-1:Dya9IyXD4xd0hV8x1JsDd3CgE6GP5gDdhI5rAeBMKfs= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
     experimental-features = nix-command flakes
     cores = 0
 
 jobs:
   # ============================================================
-  # FASE 1: EVALUACIÓN (rápida, se ejecuta en cada push)
-  # Detecta errores de sintaxis, opciones incorrectas, paquetes
-  # que no existen, etc. — sin compilar nada.
+  # FASE 1: EVALUACIÓN (rápida, en cada push)
+  # Detecta sintaxis, opciones inexistentes, paquetes rotos, etc.
   # ============================================================
   eval:
     name: Evaluar configuración
-    runs-on: ubuntu-24.04-arm  # runner ARM64 nativo
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,41 +29,31 @@ jobs:
       - name: Instalar Nix (Determinate)
         uses: DeterminateSystems/nix-installer-action@v13
 
-      - name: Crear hardware-configuration.nix de CI (stub)
+      - name: Stub hardware-configuration.nix (solo CI)
         run: |
           cat > hardware-configuration.nix <<'EOF'
           { config, lib, pkgs, ... }:
           {
-            # Stub SOLO para CI: declara un filesystem raíz mínimo para que
-            # el sistema pueda evaluarse/construirse sin el disco real del Mac.
-            fileSystems."/" = {
-              device = "/dev/null";
-              fsType = "ext4";
-            };
-            # No intentar montar/instalar nada real
+            fileSystems."/" = { device = "/dev/null"; fsType = "ext4"; };
             boot.loader.systemd-boot.enable = lib.mkForce false;
           }
           EOF
+          # Los flakes solo ven archivos trackeados por git
+          git add -A hardware-configuration.nix
 
       - name: Evaluar la configuración completa
-        run: |
-          nix flake check . --no-build 2>&1 | tail -30 || \
-          nix eval .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw
-
-      - name: Verificar que la config del sistema evalúa
         run: |
           nix eval .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw
           echo "✅ La configuración evalúa correctamente"
 
   # ============================================================
-  # FASE 2: BUILD COMPLETO (lento — solo manual, o al hacer push
-  # si lo necesitas). Compila el sistema entero para aarch64-linux.
+  # FASE 2: BUILD COMPLETO (lento — solo manual)
+  # Compila el sistema entero para aarch64-linux nativamente.
   # ============================================================
   build:
     name: Compilar sistema completo (aarch64)
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 300 # hasta 5h (COSMIC + toolchains son pesados)
-    # Solo manual para no bloquear cada push con 2h de build
+    timeout-minutes: 300
     if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
@@ -74,25 +62,22 @@ jobs:
       - name: Instalar Nix (Determinate)
         uses: DeterminateSystems/nix-installer-action@v13
 
-      - name: Crear hardware-configuration.nix de CI (stub)
+      - name: Stub hardware-configuration.nix (solo CI)
         run: |
           cat > hardware-configuration.nix <<'EOF'
           { config, lib, pkgs, ... }:
           {
-            fileSystems."/" = {
-              device = "/dev/null";
-              fsType = "ext4";
-            };
+            fileSystems."/" = { device = "/dev/null"; fsType = "ext4"; };
             boot.loader.systemd-boot.enable = lib.mkForce false;
           }
           EOF
+          git add -A hardware-configuration.nix
 
       - name: Compilar el sistema (toplevel)
         run: |
-          nix build .#nixosConfigurations.macnix.config.system.build.toplevel \
-            --print-build-logs 2>&1 | tail -80
+          nix build .#nixosConfigurations.macnix.config.system.build.toplevel --print-build-logs 2>&1 | tail -100
 
       - name: Resultado
         run: |
           echo "✅ Sistema compilado correctamente para aarch64-linux"
-          echo "Resultado: $(readlink -f result)"
+          readlink -f result

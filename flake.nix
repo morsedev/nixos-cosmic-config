@@ -18,6 +18,12 @@
     # Navegador Zen Browser (configurable al máximo, temas integrados)
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
 
+    # Neovim declarativo (IDE completo, estilo kickstart)
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # ============ APPLE SILICON ============
     # Soporte Asahi (kernel, U-Boot, GPU, firmware) importado como input,
     # en vez del directorio local ./apple-silicon-support.
