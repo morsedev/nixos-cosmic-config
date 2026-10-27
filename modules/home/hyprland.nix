@@ -46,9 +46,10 @@
 
         # Borde ACTIVO con degradado azul -> morado en diagonal (45deg).
         # Es el truco más barato para que una ventana parezca "premium".
-        col.active_border = "rgba(7aa2f7ee) rgba(bb9af7ee) 45deg";
+        # `lib.mkForce` = "ignora lo que diga Stylix para esta opción".
+        col.active_border = lib.mkForce "rgba(7aa2f7ee) rgba(bb9af7ee) 45deg";
         # Borde inactivo: gris azulado muy discreto.
-        col.inactive_border = "rgba(292e42ff)";
+        col.inactive_border = lib.mkForce "rgba(292e42ff)";
 
         layout = "dwindle";
         resize_on_border = true;
@@ -67,7 +68,7 @@
           enabled = true;
           range = 24;
           render_power = 3;
-          color = "rgba(00000066)";
+          color = lib.mkForce "rgba(00000066)";
         };
 
         blur = {
