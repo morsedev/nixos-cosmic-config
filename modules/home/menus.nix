@@ -147,18 +147,18 @@
 
       case "$choice" in
         "")                    exit 0 ;;
-        *"Fecha y hora")       exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center datetime ;;
-        *"Red")                exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center wifi ;;
-        *Bluetooth)            exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center bluetooth ;;
-        *Sonido)               exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center sound ;;
-        *Pantalla)             exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center display ;;
-        *"Energía")            exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center power ;;
-        *Teclado)              exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center keyboard ;;
-        *"Ratón")              exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center mouse ;;
-        *Usuarios)             exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center user-accounts ;;
-        *"Región")             exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center region ;;
-        *Apariencia)           exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center appearance ;;
-        *)                     exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center ;;
+        *"Fecha y hora")       exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center datetime ;;
+        *"Red")                exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center wifi ;;
+        *Bluetooth)            exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center bluetooth ;;
+        *Sonido)               exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center sound ;;
+        *Pantalla)             exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center display ;;
+        *"Energía")            exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center power ;;
+        *Teclado)              exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center keyboard ;;
+        *"Ratón")              exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center mouse ;;
+        *Usuarios)             exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center user-accounts ;;
+        *"Región")             exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center region ;;
+        *Apariencia)           exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center appearance ;;
+        *)                     exec env XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1 gnome-control-center ;;
       esac
     '')
   ];
