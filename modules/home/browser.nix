@@ -50,8 +50,8 @@
         # Zen: una sola barra de herramientas (sin segunda fila).
         "zen.view.use-single-toolbar" = true;
         # Zen: modo compacto activado desde el arranque.
-        "zen.view.compact.enable-at-startup" = true;
-        "zen.view.compact.hide-tabbar" = true;
+        "zen.view.compact.enable-at-startup" = false;
+        "zen.view.compact.hide-tabbar" = false;
         "zen.view.compact.hide-toolbar" = false;
         # Zen: sin pestañas verticales ni botón de "nueva pestaña" visible.
         "zen.tabs.vertical" = false;
@@ -74,64 +74,37 @@
       # adelante, y pintamos lo que queda con la paleta Tokyo Night.
       userChrome = ''
         /* ================================================================= */
-        /*  ZEN MINIMAL                                                       */
+        /*  ZEN MINIMAL — solo barra de direcciones + atrás/adelante          */
         /* ================================================================= */
+        /*  Regla de oro: NO tocar #titlebar ni la altura de #nav-bar,       */
+        /*  porque en Zen la barra de direcciones vive ahí y desaparece.     */
 
         :root {
-          --tn-bg:      #16161e;
-          --tn-bg2:     #1f2335;
-          --tn-border:  #292e42;
-          --tn-fg:      #c0caf5;
-          --tn-dim:     #565f89;
-          --tn-blue:    #7aa2f7;
+          --tn-bg:     #16161e;
+          --tn-bg2:    #1f2335;
+          --tn-border: #292e42;
+          --tn-fg:     #c0caf5;
+          --tn-dim:    #565f89;
+          --tn-blue:   #7aa2f7;
         }
 
-        /* --- 1. Fuera pestañas ------------------------------------------- */
+        /* --- Ocultar pestañas horizontales y barra de marcadores --------- */
         #TabsToolbar,
-        #tabbrowser-tabs,
-        .tabbrowser-tab,
-        #new-tab-button,
-        #alltabs-button { display: none !important; }
+        #PersonalToolbar { display: none !important; }
 
-        /* --- 2. Fuera la barra lateral de Zen ---------------------------- */
+        /* --- Ocultar la barra lateral de Zen (pestañas verticales) ------- */
         #zen-sidebar,
-        #zen-sidebar-top-buttons,
-        #zen-sidebar-icons-wrapper,
-        #zen-sidebar-foot-buttons,
-        #zen-workspaces-button,
-        #sidebar-box,
-        #sidebar-main { display: none !important; }
+        #zen-sidebar-splitter { display: none !important; }
 
-        /* --- 3. Fuera marcadores y adornos ------------------------------- */
-        #PersonalToolbar,
-        #bookmarks-toolbar-placeholder,
-        #library-button,
-        #firefox-view-button { display: none !important; }
-
-        /* --- 4. Barra superior compacta ---------------------------------- */
+        /* --- Colores de la barra ----------------------------------------- */
         #navigator-toolbox {
           background: var(--tn-bg) !important;
           border-bottom: 1px solid var(--tn-border) !important;
-          padding: 4px 10px !important;
-          -moz-window-dragging: drag;
         }
+        #nav-bar { background: transparent !important; }
+        toolbar { background: transparent !important; }
 
-        #nav-bar {
-          background: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          min-height: 40px !important;
-          padding: 0 !important;
-        }
-
-        /* Barra de direcciones centrada y con ancho máximo */
-        #urlbar-container {
-          max-width: 980px !important;
-          margin: 0 auto !important;
-          -moz-window-dragging: no-drag;
-        }
-
-        /* --- 5. Barra de direcciones ------------------------------------- */
+        /* --- Barra de direcciones ---------------------------------------- */
         #urlbar-background {
           background: var(--tn-bg2) !important;
           border: 1px solid var(--tn-border) !important;
@@ -139,15 +112,12 @@
         }
         #urlbar[focused] > #urlbar-background {
           border-color: var(--tn-blue) !important;
-          box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.22) !important;
+          box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.20) !important;
         }
-        #urlbar-input {
-          color: var(--tn-fg) !important;
-          font-size: 13px !important;
-        }
+        #urlbar-input { color: var(--tn-fg) !important; }
         #urlbar-input::placeholder { color: var(--tn-dim) !important; }
 
-        /* Menú desplegable de sugerencias */
+        /* --- Menú de sugerencias ----------------------------------------- */
         .urlbarView {
           background: var(--tn-bg) !important;
           border: 1px solid var(--tn-border) !important;
@@ -155,48 +125,27 @@
         }
         .urlbarView-row[selected] { background: rgba(122, 162, 247, 0.18) !important; }
 
-        /* --- 6. Botones: solo atrás / adelante --------------------------- */
+        /* --- Botones: atrás / adelante ----------------------------------- */
         #back-button,
-        #forward-button {
-          color: var(--tn-fg) !important;
-          border-radius: 8px !important;
-          padding: 4px !important;
-          -moz-window-dragging: no-drag;
-        }
+        #forward-button { border-radius: 8px !important; }
         #back-button:hover,
         #forward-button:hover { background: var(--tn-border) !important; }
         #back-button[disabled="true"],
         #forward-button[disabled="true"] { opacity: 0.3 !important; }
 
-        /* Todo lo demás de la barra, oculto. La recarga (Ctrl+R), descargas
-           (Ctrl+J), etc. siguen funcionando con el teclado. */
+        /* Lo demás, fuera. Sigue disponible por teclado (Ctrl+R, Ctrl+J...) */
         #reload-button,
         #stop-button,
         #home-button,
         #downloads-button,
         #unified-extensions-button { display: none !important; }
 
-        /* El menú (hamburguesa) queda casi invisible y aparece al pasar. */
-        #PanelUI-menu-button {
-          opacity: 0.35 !important;
-          border-radius: 8px !important;
-          -moz-window-dragging: no-drag;
-        }
+        /* El menú (hamburguesa) discreto, visible al pasar el ratón */
+        #PanelUI-menu-button { opacity: 0.35 !important; border-radius: 8px !important; }
         #PanelUI-menu-button:hover {
           opacity: 1 !important;
           background: var(--tn-border) !important;
         }
-
-        /* --- 7. Sin botones de ventana (cierra con Super+Q) -------------- */
-        #titlebar { min-height: 0 !important; }
-        #titlebar-buttonbox-container,
-        #titlebar-buttonbox { display: none !important; }
-
-        /* --- 8. Detalles -------------------------------------------------- */
-        /* Barra de desplazamiento discreta */
-        :root { scrollbar-color: var(--tn-border) transparent; }
-        /* Pestañas activas: sin barra de título de pestaña */
-        .tabbrowser-tab::after { display: none !important; }
       '';
     };
   };
