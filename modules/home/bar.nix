@@ -732,14 +732,13 @@ in
         grace = 0;
       };
 
-      # Fondo: el mismo wallpaper, difuminado. Mucho más elegante que negro.
+      # Fondo: color sólido Tokyo Night.
+      # (Se probó fondo con imagen + blur, pero hyprlock crasheaba y Hyprland
+      #  mostraba la pantalla de "lockscreen died". Un color plano es estable.)
       background = [
         {
           monitor = "";
-          path = "/etc/wallpapers/01-shinjuku.jpg";
-          blur_passes = 3;
-          blur_size = 8;
-          brightness = 0.5;
+          color = "rgba(16, 17, 26, 1.0)";
         }
       ];
 
@@ -798,7 +797,8 @@ in
         after_sleep_cmd = "hyprctl dispatch dpms on";
       };
       listener = [
-        { timeout = 300; on-timeout = "pgrep hyprlock || hyprlock"; }
+        # Auto-lock DESACTIVADO: hyprlock crashea en este equipo y dejaba la
+        # sesión en la pantalla de error. Se puede bloquear a mano con Super+L.
         { timeout = 600; on-timeout = "hyprctl dispatch dpms off"; on-resume = "hyprctl dispatch dpms on"; }
         { timeout = 1800; on-timeout = "systemctl suspend"; }
       ];
