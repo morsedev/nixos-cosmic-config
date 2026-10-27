@@ -44,9 +44,12 @@ jobs:
           echo "=== hostName ==="
           nix eval .#nixosConfigurations.macnix.config.networking.hostName --raw
           echo ""
-          echo "=== drvPath del toplevel ==="
-          if nix eval --show-trace .#nixosConfigurations.macnix.config.system.build.toplevel.drvPath --raw > /tmp/eval.out 2>/tmp/eval.err; then
-            echo "✅ Eval OK: $(cat /tmp/eval.out)"
+          echo "=== system.build attrNames ==="
+          nix eval --json .#nixosConfigurations.macnix.config.system.build --apply 'builtins.attrNames' || true
+          echo ""
+          echo "=== dry-run del toplevel ==="
+          if nix build --dry-run --show-trace .#nixosConfigurations.macnix.config.system.build.toplevel > /tmp/eval.out 2>/tmp/eval.err; then
+            echo "✅ Eval OK"
           else
             echo "❌ EVAL FALLÓ"
             grep -n "error:" /tmp/eval.err | tail -5
