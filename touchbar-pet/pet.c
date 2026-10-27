@@ -414,6 +414,32 @@ static void blit(struct panel *p) {
     drmModeDirtyFB(p->fd, p->fb, NULL, 0);
 }
 
+/* El panel de la Touch Bar tiene su PROPIO backlight. tiny-dfr lo gestiona;
+   si nuestro daemon no lo enciende, el contenido se dibuja pero no se ve. */
+static void backlight_on(void) {
+    const char *dirs[] = {
+        "/sys/class/backlight/228600000.dsi.0",
+        "/sys/class/backlight/apple-touchbar",
+        NULL,
+    };
+    for (int i = 0; dirs[i]; i++) {
+        char path[128];
+        snprintf(path, sizeof(path), "%s/max_brightness", dirs[i]);
+        FILE *f = fopen(path, "r");
+        if (!f) continue;
+        int max = 255;
+        if (fscanf(f, "%d", &max) != 1) max = 255;
+        fclose(f);
+
+        snprintf(path, sizeof(path), "%s/brightness", dirs[i]);
+        f = fopen(path, "w");
+        if (!f) continue;
+        fprintf(f, "%d\n", max * 85 / 100);
+        fclose(f);
+        fprintf(stderr, "backlight %s -> %d/%d\n", dirs[i], max * 85 / 100, max);
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 /*  Teclado: lee /dev/input/event* para animar las patas                     */
 /* ------------------------------------------------------------------------- */
@@ -481,6 +507,7 @@ int main(int argc, char **argv) {
     }
     fprintf(stderr, "panel %ux%u, pitch %u\n", 64, p.height, p.pitch);
 
+    backlight_on();
     open_inputs();
     fprintf(stderr, "%d dispositivos de entrada\n", in_n);
 
