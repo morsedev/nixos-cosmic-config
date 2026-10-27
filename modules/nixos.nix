@@ -45,6 +45,9 @@
     # Escritorio Hyprland (tiling) + login + paquetes del ricing.
     ./hyprland.nix
 
+    # Layouts de la Touch Bar + comando `touchbar`.
+    ./touchbar.nix
+
     # Herramientas de desarrollo (Rust, Flutter/Dart, Python, Docker...).
     ./development.nix
 

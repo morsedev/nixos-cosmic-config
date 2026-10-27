@@ -278,6 +278,7 @@ in
         "$mod, B, exec, bluetooth"
         "$mod, A, exec, pwvucontrol"
         "$mod, I, exec, settings"
+        "$mod SHIFT, T, exec, touchbar menu"
 
         # Fondos de pantalla
         "$mod, W, exec, ${lib.getExe wallpaper} next"

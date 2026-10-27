@@ -114,6 +114,7 @@ SECTIONS = [
         ("exec", "bluetooth", "Menú de Bluetooth"),
         ("exec", "pwvucontrol", "Volumen y audio"),
         ("exec", "settings", "Ajustes del sistema"),
+        ("exec", "touchbar menu", "Cambiar la Touch Bar"),
     ]),
     ("ESCRITORIO", [
         ("exec", "wallpaper next", "Siguiente fondo de pantalla"),
