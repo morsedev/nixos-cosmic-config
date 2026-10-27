@@ -17,7 +17,11 @@
   home.packages = [
     # `hyprkeys` lee los atajos REALES del compositor (hyprctl -j binds) y los
     # pinta agrupados en español. Al añadir un atajo nuevo aparece solo.
-    (pkgs.writers.writePython3Bin "hyprkeys" { } ./hyprkeys.py)
+    # `flakeIgnore` desactiva el aviso de "línea demasiado larga" (E501): el
+    # script tiene textos largos a propósito y se lee mejor así.
+    (pkgs.writers.writePython3Bin "hyprkeys" {
+      flakeIgnore = [ "E501" ];
+    } ./hyprkeys.py)
 
     # Abre la chuleta en una ventana flotante y centrada.
     # El prefijo [float;center;size W H] es una "regla de ejecución" de Hyprland.
