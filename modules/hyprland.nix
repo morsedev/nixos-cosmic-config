@@ -149,6 +149,13 @@
     # --- Tema / fuentes ---
     papirus-icon-theme
     bibata-cursors
+
+    # Esquemas de GNOME. Los necesita xdg-desktop-portal-gtk para responder a
+    # "¿el escritorio es oscuro?" (org.gnome.desktop.interface color-scheme).
+    # SIN ESTO, las apps GTK4/libadwaita (Nautilus, File Roller, pwvucontrol)
+    # se quedan en BLANCO aunque todo lo demás sea oscuro.
+    gsettings-desktop-schemas
+    glib
   ];
 
   # Polkit (diálogos de autenticación) y keyring.
