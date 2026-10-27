@@ -161,6 +161,32 @@
   };
 
   # ---------------------------------------------------------------------------
+  # ARREGLO DEL PERFIL
+  # ---------------------------------------------------------------------------
+  # El módulo de Zen genera ~/.config/zen/profiles.ini SIN la sección
+  # [Profile0], así que el navegador no reconoce el perfil y muestra
+  # "Your Zen profile cannot be loaded". Además es un enlace de solo lectura.
+  # Este script (se ejecuta tras cada activación de Home Manager) lo sustituye
+  # por un archivo válido y escribible.
+  home.activation.fixZenProfiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    target="$HOME/.config/zen/profiles.ini"
+    if [ -L "$target" ] || [ ! -f "$target" ]; then
+      rm -f "$target"
+      cat > "$target" <<'INI'
+[Profile0]
+Name=default
+IsRelative=1
+Path=default
+Default=1
+
+[General]
+StartWithLastProfile=1
+Version=2
+INI
+    fi
+  '';
+
+  # ---------------------------------------------------------------------------
   # NAVEGADOR POR DEFECTO
   # ---------------------------------------------------------------------------
   # Cuando pulses un enlace (http/https), se abrirá Zen.
