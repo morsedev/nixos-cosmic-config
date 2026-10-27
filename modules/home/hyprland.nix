@@ -44,13 +44,6 @@
         gaps_out = 12;
         border_size = 2;
 
-        # Borde ACTIVO con degradado azul -> morado en diagonal (45deg).
-        # Es el truco más barato para que una ventana parezca "premium".
-        # `lib.mkForce` = "ignora lo que diga Stylix para esta opción".
-        col.active_border = lib.mkForce "rgba(7aa2f7ee) rgba(bb9af7ee) 45deg";
-        # Borde inactivo: gris azulado muy discreto.
-        col.inactive_border = lib.mkForce "rgba(292e42ff)";
-
         layout = "dwindle";
         resize_on_border = true;
         allow_tearing = false;
@@ -129,17 +122,21 @@
       };
 
       # --- Reglas de CAPAS (waybar, walker, swaync) ---
-      # `blur, <namespace>` difumina lo que hay DETRÁS de esa capa.
+      # `blur <namespace>` difumina lo que hay DETRÁS de esa capa.
       # Así los paneles translúcidos se ven "de cristal" sobre el wallpaper.
-      # OJO: no aplicamos blur a `waybar` porque su capa ocupa toda la
+      #
+      # OJO (Hyprland 0.56): la sintaxis nueva separa con ESPACIO, no con coma.
+      # `layerrule = blur, walker` (formato antiguo) ya NO es válido.
+      #
+      # Tampoco aplicamos blur a `waybar`: su capa ocupa todo el ancho de la
       # pantalla y difuminaría una franja completa en vez de solo la barra.
       layerrule = [
-        "blur, walker"
-        "ignorezero, walker"
-        "blur, swaync-control-center"
-        "blur, swaync-notification-window"
-        "ignorezero, swaync-control-center"
-        "ignorezero, swaync-notification-window"
+        "blur walker"
+        "ignorezero walker"
+        "blur swaync-control-center"
+        "blur swaync-notification-window"
+        "ignorezero swaync-control-center"
+        "ignorezero swaync-notification-window"
       ];
 
       # --- Programas que arrancan con la sesión ---
@@ -235,5 +232,21 @@
 
 
     };
+
+    # -------------------------------------------------------------------------
+    # LÍNEAS ESCRITAS A MANO EN hyprland.conf
+    # -------------------------------------------------------------------------
+    # El borde con degradado hay que escribirlo aquí porque el módulo de Home
+    # Manager convierte la clave "col.active_border" en un bloque anidado
+    # (`col { active_border = ... }`) que Hyprland 0.56 no entiende.
+    # Con `general { col.algo = ... }` le llega la sintaxis correcta.
+    extraConfig = ''
+      # Borde ACTIVO: degradado azul -> morado en diagonal (45deg).
+      # Es el truco más barato para que una ventana parezca "premium".
+      general {
+        col.active_border = rgba(7aa2f7ee) rgba(bb9af7ee) 45deg
+        col.inactive_border = rgba(292e42ff)
+      }
+    '';
   };
 }
