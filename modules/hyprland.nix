@@ -24,24 +24,17 @@
   hardware.graphics.enable = true;
 
   # ---------------------------------------------------------------------------
-  # LOGIN MANAGER (greetd + tuigreet)
+  # LOGIN GRÁFICO (SDDM + tema Astronaut)
   # ---------------------------------------------------------------------------
-  # greetd es el gestor de sesión; tuigreet es un login sencillo en texto.
-  services.greetd = {
+  # SDDM es un gestor de sesión gráfico; con `wayland.enable` funciona en Wayland
+  # y ofrece la sesión de Hyprland. El tema Astronaut es el más vistoso.
+  services.displayManager.sddm = {
     enable = true;
-    settings.default_session = {
-      # `tuigreet` pide usuario/contraseña y lanza Hyprland al entrar.
-      command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --cmd start-hyprland";
-      user = "greeter";
-    };
+    wayland.enable = true;
+    theme = "sddm-astronaut-theme";
+    extraPackages = [ pkgs.sddm-astronaut ];
   };
-
-  # Usuario/grupo que ejecuta el greeter (requerido por greetd).
-  users.groups.greeter = { };
-  users.users.greeter = {
-    isSystemUser = true;
-    group = "greeter";
-  };
+  services.displayManager.defaultSession = "hyprland";
 
   # PAM para poder desbloquear con hyprlock.
   security.pam.services.hyprlock = { };
