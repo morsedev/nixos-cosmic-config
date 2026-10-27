@@ -96,6 +96,30 @@
   # herramientas propietarias...).
   nixpkgs.config.allowUnfree = true;
 
+  # Permite a tu usuario usar cachés/substituters y `cachix push` sin sudo.
+  nix.settings.trusted-users = [ "root" "macnix" ];
+
+  # ---------------------------------------------------------------------------
+  # CACHÉ PERSONAL (Cachix) — OPCIONAL, para respaldar lo que compilas
+  # ---------------------------------------------------------------------------
+  # Sirve sobre todo para el kernel/U-Boot de Asahi (no hay caché oficial),
+  # que si no se recompila cada vez que limpias el store o reinstalas.
+  #
+  # Pasos (una vez):
+  #   1) Crea una caché en https://app.cachix.org  (ej. "macnix")
+  #   2) sudo cachix authtoken <TU_TOKEN>
+  #   3) Descomenta el bloque de abajo y pon tu caché/clave pública
+  #   4) sudo nixos-rebuild switch ...
+  #   5) El hook sube automáticamente todo lo que se compile.
+  #
+  # nix.settings.substituters = [ "https://TU_CACHE.cachix.org" ];
+  # nix.settings.trusted-public-keys = [ "TU_CACHE.cachix.org-1:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=" ];
+  # nix.settings.post-build-hook = "/etc/nix/upload-to-cache.sh";
+  # environment.etc."nix/upload-to-cache.sh" = {
+  #   source = ./scripts/upload-to-cache.sh;
+  #   mode = "0755";
+  # };
+
   # ---------------------------------------------------------------------------
   # MEMORIA (anti-OOM)
   # ---------------------------------------------------------------------------

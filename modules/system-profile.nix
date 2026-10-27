@@ -63,6 +63,29 @@
   };
 
   # ---------------------------------------------------------------------------
+  # CACHÉS BINARIAS (evitan compilar lo que ya está compilado)
+  # ---------------------------------------------------------------------------
+  # `substituters` = servidores de los que DESCARGAR paquetes ya construidos.
+  # Se SUMAN a los que ya tengas (cache.nixos.org, etc.).
+  #
+  #   nix-community.cachix.org → nixvim, stylix, home-manager, muchas libs
+  #   cosmic.cachix.org        → escritorio COSMIC
+  #
+  # Para añadir TU caché personal, descomenta y pon tu nombre/clave (ver README).
+  nix.settings = {
+    substituters = [
+      "https://nix-community.cachix.org"
+      "https://cosmic.cachix.org"
+      # "https://TU_CACHE.cachix.org"
+    ];
+    trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "cosmic.cachix.org-1:Dya9IyXD4xd0hV8x1JsDd3CgE6GP5gDdhI5rAeBMKfs="
+      # "TU_CACHE.cachix.org-1:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx="
+    ];
+  };
+
+  # ---------------------------------------------------------------------------
   # FUENTES
   # ---------------------------------------------------------------------------
   # `fonts.packages` es una LISTA: se suman todas las fuentes que declares en

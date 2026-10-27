@@ -58,6 +58,7 @@
     docker              # contenedores
     docker-compose      # orquestación de contenedores
     gh                  # GitHub CLI (gh pr, gh repo...)
+    cachix              # subir/descargar de una caché binaria (Cachix)
     lazygit             # interfaz TUI para git
     jujutsu             # sistema de control de versiones alternativo a git
     direnv              # carga variables/entornos por carpeta (.envrc)

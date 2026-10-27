@@ -118,6 +118,50 @@ NIX-PRIMER.md               # explicación de Nix de cero
 
 ---
 
+## Cachés binarias (no recompilar) y respaldo
+
+### Ya activadas (automático)
+
+El módulo añade estas cachés, así que descarga hechos:
+
+- `cache.nixos.org` → la mayoría de paquetes
+- `nix-community.cachix.org` → NixVim, Stylix, Home Manager...
+- `cosmic.cachix.org` → escritorio COSMIC
+
+### Lo que NO tiene caché: el kernel/U-Boot de Asahi
+
+El proyecto `nixos-apple-silicon` **no tiene caché binaria oficial** (sus
+builders no funcionan). Por eso `linux-asahi` y `uboot-asahi` se compilan en
+tu máquina. **La única forma de no recompilarlos es tu propia caché.**
+
+### Tu caché personal (Cachix) — respaldo de todo lo que compilas
+
+1. Crea una caché en <https://app.cachix.org> (ej. `macnix`) y copia su
+   **public key**.
+2. Autentica el token **como root** (el hook corre como root):
+   ```bash
+   sudo cachix authtoken <TU_TOKEN>
+   ```
+3. En `configuration.nix`, descomenta el bloque *CACHÉ PERSONAL* y pon tu
+   caché y su clave pública.
+4. `sudo nixos-rebuild switch --flake .#TU_HOST`
+
+A partir de ahí, **cada cosa que compile se sube sola** a tu caché. En un
+rebuild futuro (o tras limpiar el store), se descarga en vez de compilarse.
+
+**Subir manualmente lo ya compilado** (p. ej. el kernel actual):
+```bash
+sudo cachix push macnix $(nix-store -qR /run/current-system)
+```
+
+> ⚠️ El plan gratuito de Cachix tiene límite de almacenamiento. El kernel +
+> U-Boot ocupan del orden de 1–2 GB. Si necesitas más, alternativas sin límite:
+> **attic** o **harmonia** autoalojados (p. ej. en tu PC Linux), o simplemente
+> **no ejecutar `nix-collect-garbage -d`** para conservar el store.
+
+> 📌 **Nunca** hagas `nix-collect-garbage -d` sin haber subido antes el kernel
+> a tu caché: lo perderías y tocaría recompilarlo.
+
 ## Swift
 
 `pkgs.swift` está marcado *broken* en `aarch64-linux` en nixpkgs. Instala el
