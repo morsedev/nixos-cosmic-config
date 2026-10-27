@@ -1,15 +1,50 @@
 # =============================================================================
 # modules/home/bar.nix  —  Barra + paneles estilo Noctalia (Tokyo Night)
 # =============================================================================
-# - Waybar: barra flotante redondeada (como Noctalia)
+# - Waybar: barra flotante en "pastillas" (como Noctalia)
 # - swaync: notificaciones + CENTRO DE CONTROL con toggles (wifi, bt, volumen...)
-# - wofi: lanzador de apps
+# - walker: lanzador de apps
 # - hyprlock / hypridle: bloqueo e inactividad
 # - cliphist: historial de portapapeles
+#
+# Los iconos son glifos de "Nerd Font" (JetBrainsMono Nerd Font los incluye).
+# Por eso la familia de fuentes de los iconos es la monoespaciada y el texto
+# normal usa "Inter".
 # =============================================================================
 
 { config, pkgs, lib, ... }:
 
+let
+  # ---------------------------------------------------------------------------
+  # GLIFOS NERD FONT
+  # ---------------------------------------------------------------------------
+  # Los iconos de la barra son caracteres Unicode del rango "Private Use Area".
+  # Si se copian/pegan a mano es fácil que se corrompan (y aparecen cuadrados o
+  # desaparecen). Por eso los generamos a partir de su código hexadecimal:
+  #   glyph "f313"           → logo de NixOS
+  #   glyph "f028"           → altavoz alto
+  # `builtins.fromJSON` interpreta el texto "\uf313" como JSON y devuelve el
+  # carácter. Solo vale para códigos hasta FFFF (los que usamos aquí).
+  glyph = code: builtins.fromJSON ("\"\\u" + code + "\"");
+
+  # Iconos concretos que usamos (código + para qué sirve).
+  ico = {
+    nix = glyph "f313";        # logo de NixOS
+    volDown = glyph "f027";    # altavoz bajo
+    volUp = glyph "f028";      # altavoz alto
+    mute = glyph "f026";       # altavoz silenciado
+    wifi = glyph "f1eb";       # wifi
+    ethernet = glyph "f233";   # servidor / LAN
+    warning = glyph "f071";    # aviso (sin conexión)
+    bolt = glyph "f0e7";       # rayo (cargando)
+    sliders = glyph "f1de";    # controles / centro de control
+    batEmpty = glyph "f244";
+    batQuarter = glyph "f243";
+    batHalf = glyph "f242";
+    batThreeQuarter = glyph "f241";
+    batFull = glyph "f240";
+  };
+in
 {
   # Menú de energía (lo usa el botón ⏻ de la barra)
   home.packages = [
@@ -34,8 +69,8 @@
     settings = [{
       layer = "top";
       position = "top";
-      height = 38;
-      spacing = 6;
+      height = 36;        # 36px: por debajo de 32 la barra parece "de juguete"
+      spacing = 8;
 
       # Flotante: márgenes alrededor (look Noctalia)
       margin-top = 8;
@@ -43,36 +78,34 @@
       margin-right = 10;
 
       modules-left = [ "custom/launcher" "hyprland/workspaces" "hyprland/window" ];
-      modules-center = [ "clock" ];
+      modules-center = [ "clock" "custom/date" ];
       modules-right = [ "tray" "pulseaudio" "network" "battery" "custom/control" "custom/power" ];
 
-      # Botón de apps (abre wofi)
+      # Logo / botón de apps (abre el lanzador)
+      # glyph "f313" = logo de NixOS (Nerd Font)
       "custom/launcher" = {
-        format = "";
+        format = ico.nix;
         tooltip = false;
         on-click = "walker";
       };
 
-      # Workspaces de Hyprland como puntitos
+      # Workspaces NUMERADOS (1..5 siempre visibles).
+      # Antes eran iconos, y como todos apuntaban al mismo glifo parecía un
+      # punto borroso. Los números se leen mejor y son más "de diseño".
       "hyprland/workspaces" = {
-        format = "{icon}";
+        format = "{name}";
         on-click = "activate";
         all-outputs = true;
-        format-icons = {
-          "1" = "";
-          "2" = "";
-          "3" = "";
-          default = "";
-          urgent = "";
-          active = "";
-        };
+        # Mostrar siempre los workspaces 1-5 aunque estén vacíos.
+        persistent-workspaces = { "*" = 5; };
       };
 
       # Título de la ventana activa
       "hyprland/window" = {
         format = "{title}";
-        max-length = 45;
-        separate-outputs = true;
+        max-length = 50;
+        separate-outputs = false;
+        tooltip = false;
         rewrite = {
           "(.*) — Mozilla Firefox" = "$1";
         };
@@ -94,43 +127,60 @@
         };
       };
 
+      # Fecha corta al lado del reloj (segunda mitad del "centro")
+      "custom/date" = {
+        exec = "date '+%a %d %b'";
+        interval = 60;
+        tooltip = false;
+        on-click = "walker --provider calendar";
+      };
+
       # Bandeja del sistema
       tray = {
         spacing = 12;
         icon-size = 18;
       };
 
-      # Volumen
+      # Volumen: icono + porcentaje (el icono cambia con el nivel)
       pulseaudio = {
-        format = "{icon} {volume}%";
-        format-muted = "󰝟 mute";
-        format-icons = { default = [ "" "" "" ]; };
+        format = "${ico.volUp}  {volume}%";
+        format-muted = "${ico.mute}  {volume}%";
+        format-icons = {
+          # bajo / medio / alto  (Font Awesome: volume-down / up)
+          default = [ ico.volDown ico.volDown ico.volUp ];
+        };
+        tooltip-format = "{desc} · {volume}%";
         on-click = "pavucontrol";
         on-click-right = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
         scroll-step = 5;
       };
 
-      # Red
+      # Red: SOLO icono (el nombre del wifi va en el tooltip, ocupaba media barra)
       network = {
-        format-wifi = " {essid}";
-        format-ethernet = "󰈀 LAN";
-        format-disconnected = "󰤭 off";
-        tooltip-format = "{ifname} via {gwaddr}";
+        format-wifi = ico.wifi;
+        format-ethernet = ico.ethernet;
+        format-disconnected = ico.warning;
+        format-linked = ico.warning;
+        tooltip-format = "{essid} ({signalStrength}%)";
         on-click = "nm-connection-editor";
       };
 
       # Batería
       battery = {
-        states = { warning = 30; critical = 15; };
-        format = "{icon} {capacity}%";
-        format-charging = "󰂄 {capacity}%";
-        format-plugged = "󰚥 {capacity}%";
-        format-icons = [ "" "" "" "" "" ];
+        states = { warning = 25; critical = 10; };
+        format = "{icon}  {capacity}%";
+        format-charging = "${ico.bolt}  {capacity}%";
+        format-plugged = "${ico.bolt}  {capacity}%";
+        # vacía / 1/4 / 1/2 / 3/4 / llena
+        format-icons = [
+          ico.batEmpty ico.batQuarter ico.batHalf ico.batThreeQuarter ico.batFull
+        ];
+        tooltip-format = "{timeTo} · {capacity}%";
       };
 
       # Botón que abre el CENTRO DE CONTROL (swaync)
       "custom/control" = {
-        format = "";
+        format = ico.sliders;
         tooltip = true;
         tooltip-format = "Centro de control";
         on-click = "swaync-client -t -sw";
@@ -145,13 +195,18 @@
     }];
 
     # =========================================================================
-    # ESTILO (CSS) — Tokyo Night, barra flotante redondeada
+    # ESTILO (CSS) — Tokyo Night, barra flotante en pastillas
     # =========================================================================
+    # Reglas de diseño que se siguen aquí:
+    #   - UNA sola fuente de texto (Inter) + Nerd Font para iconos.
+    #   - UN solo color de acento (azul #7aa2f7). El resto, texto claro.
+    #   - El color SOLO indica estado (batería baja, mute, carga...).
+    #   - Espaciado en múltiplos de 4 (4/8/12/16) y nada por debajo de 11px.
     style = ''
       * {
-        font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
+        font-family: "Inter", "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 500;
         border: none;
         border-radius: 0;
         min-height: 0;
@@ -162,86 +217,111 @@
         color: #c0caf5;
       }
 
-      /* Grupos flotantes */
+      /* Las tres "pastillas" flotantes */
       .modules-left,
       .modules-center,
       .modules-right {
-        background: rgba(26, 27, 38, 0.82);
-        border: 1px solid rgba(122, 162, 247, 0.25);
-        border-radius: 14px;
-        padding: 2px 12px;
+        background: rgba(22, 22, 30, 0.86);
+        border: 1px solid rgba(122, 162, 247, 0.16);
+        border-radius: 13px;
+        padding: 0 10px;
         margin: 0 4px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
       }
 
-      /* Workspaces */
+      /* --- Workspaces numerados --- */
       #workspaces {
-        padding: 0 4px;
+        padding: 0 2px;
       }
       #workspaces button {
-        padding: 0 6px;
-        margin: 2px 2px;
+        padding: 0 9px;
+        margin: 6px 2px;
+        min-width: 16px;
         color: #565f89;
-        border-radius: 10px;
-        transition: all 0.25s ease;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.2s ease;
       }
       #workspaces button:hover {
-        background: rgba(122, 162, 247, 0.15);
+        background: rgba(122, 162, 247, 0.14);
         color: #c0caf5;
       }
       #workspaces button.active {
-        color: #1a1b26;
-        background: linear-gradient(45deg, #7aa2f7, #bb9af7);
-        box-shadow: 0 0 10px rgba(122, 162, 247, 0.6);
+        background: #7aa2f7;
+        color: #16161e;
       }
       #workspaces button.urgent {
-        color: #1a1b26;
         background: #f7768e;
+        color: #16161e;
       }
 
-      /* Ventana activa */
+      /* --- Título de ventana --- */
       #window {
         color: #a9b1d6;
-        padding: 0 8px;
-        font-weight: 500;
+        padding: 0 10px 0 6px;
+        font-size: 12.5px;
       }
 
-      /* Reloj */
+      /* --- Reloj y fecha --- */
       #clock {
-        color: #7aa2f7;
-        font-weight: 700;
-        padding: 0 6px;
+        color: #c0caf5;
+        font-weight: 600;
+        padding: 0 6px 0 10px;
+        font-size: 13px;
+      }
+      #custom-date {
+        color: #565f89;
+        font-size: 11.5px;
+        padding: 0 10px 0 0;
       }
 
-      /* Módulos de la derecha */
-      #pulseaudio { color: #7dcfff; padding: 0 6px; }
-      #network   { color: #9ece6a; padding: 0 6px; }
-      #battery   { color: #e0af68; padding: 0 6px; }
-      #battery.charging { color: #9ece6a; }
-      #battery.warning  { color: #e0af68; }
-      #battery.critical { color: #f7768e; animation: blink 1s infinite; }
+      /* --- Módulos de la derecha: mismo color, icono + número --- */
+      #pulseaudio,
+      #network,
+      #battery {
+        padding: 0 9px;
+        color: #c0caf5;
+      }
+      #pulseaudio.muted { color: #565f89; }
+      #network.disconnected { color: #565f89; }
+      #battery.charging,
+      #battery.plugged { color: #9ece6a; }
+      #battery.warning:not(.charging) { color: #e0af68; }
+      #battery.critical:not(.charging) { color: #f7768e; }
 
       #tray { padding: 0 8px; }
       #tray > .passive { -gtk-icon-effect: dim; }
 
-      #custom-launcher { color: #bb9af7; font-size: 17px; padding: 0 8px; }
-      #custom-control  { color: #7aa2f7; font-size: 15px; padding: 0 6px; }
-      #custom-power    { color: #f7768e; font-size: 15px; padding: 0 8px; }
+      /* --- Botones --- */
+      #custom-launcher {
+        color: #7aa2f7;
+        font-family: "JetBrainsMono Nerd Font";
+        font-size: 16px;
+        padding: 0 10px 0 8px;
+      }
+      #custom-control {
+        color: #a9b1d6;
+        font-family: "JetBrainsMono Nerd Font";
+        font-size: 15px;
+        padding: 0 8px;
+      }
+      #custom-power {
+        color: #565f89;
+        font-size: 14px;
+        padding: 0 10px 0 6px;
+      }
 
       #custom-launcher:hover,
-      #custom-control:hover,
-      #custom-power:hover { background: rgba(122, 162, 247, 0.15); border-radius: 10px; }
-
-      @keyframes blink {
-        to { color: #1a1b26; }
-      }
+      #custom-control:hover { color: #7aa2f7; }
+      #custom-power:hover { color: #f7768e; }
 
       tooltip {
-        background: rgba(26, 27, 38, 0.95);
-        border: 1px solid rgba(122, 162, 247, 0.4);
+        background: rgba(22, 22, 30, 0.97);
+        border: 1px solid rgba(122, 162, 247, 0.25);
         border-radius: 10px;
       }
-      tooltip label { color: #c0caf5; }
+      tooltip label { color: #c0caf5; font-size: 12px; }
     '';
   };
 
@@ -262,6 +342,14 @@
       force_keyboard_focus = true;
       hotreload_theme = false;
       timeout = 0;
+
+      # Quitar los "chips" de teclas (F1..F4, pin, start): era UI de debug.
+      hide_quick_activation = true;
+      hide_action_hints = true;
+      hide_return_action = true;
+
+      # Pedir al compositor que difumine detrás (Hyprland lo soporta).
+      ext_background_effect_blur = true;
     };
 
     # Tema Tokyo Night (GTK CSS)
@@ -274,71 +362,101 @@
         @define-color error_bg_color #f7768e;
         @define-color error_fg_color #c0caf5;
 
-        * { all: unset; font-family: "JetBrainsMono Nerd Font", sans-serif; }
-
-        popover {
-          background: rgba(26, 27, 38, 0.97);
-          border: 1px solid rgba(122, 162, 247, 0.35);
-          border-radius: 20px;
-          padding: 10px;
+        * {
+          all: unset;
+          font-family: "Inter", "JetBrainsMono Nerd Font", sans-serif;
+          font-size: 14px;
         }
 
+        popover {
+          background: transparent;
+          border: none;
+          padding: 0;
+        }
+
+        /* El panel en sí */
         .box-wrapper {
-          box-shadow: 0 19px 38px rgba(0,0,0,0.45), 0 15px 12px rgba(0,0,0,0.30);
-          background: @window_bg_color;
-          padding: 20px;
-          border-radius: 20px;
-          border: 1px solid rgba(122, 162, 247, 0.35);
+          min-width: 620px;
+          background: rgba(22, 22, 30, 0.88);
+          border: 1px solid rgba(122, 162, 247, 0.16);
+          border-radius: 16px;
+          padding: 16px;
+          box-shadow:
+            0 24px 48px rgba(0, 0, 0, 0.55),
+            0 8px 16px rgba(0, 0, 0, 0.35);
         }
 
         .preview-box, .elephant-hint, .placeholder { color: @theme_fg_color; }
+        .placeholder { color: #565f89; font-size: 13px; }
 
+        /* Campo de búsqueda: alto y cómodo (antes 25px, parecía una etiqueta) */
         .input {
           caret-color: @theme_fg_color;
           background: #24283b;
-          padding: 12px 14px;
-          border-radius: 12px;
+          padding: 13px 14px;
+          border-radius: 11px;
           color: @theme_fg_color;
-          font-size: 15px;
+          font-size: 14.5px;
         }
-        .input placeholder { opacity: 0.45; }
-        .input selection { background: rgba(122,162,247,0.35); }
+        .input placeholder { opacity: 0.5; }
+        .input selection { background: rgba(122, 162, 247, 0.35); }
 
+        /* Lista de resultados */
         .list { color: @theme_fg_color; }
-        .item-box { border-radius: 12px; padding: 10px; margin: 2px 0; }
-        child:selected .item-box, row:selected .item-box {
-          background: linear-gradient(45deg, rgba(122,162,247,0.85), rgba(187,154,247,0.85));
-          color: #1a1b26;
+        .item-box {
+          border-radius: 10px;
+          padding: 9px 12px;
+          margin: 2px 0;
         }
+
+        /* Selección: fondo azul suave + barra de acento a la izquierda.
+           (Antes era un degradado azul->morado que parecía una barra de carga) */
+        child:selected .item-box,
+        row:selected .item-box {
+          background: rgba(122, 162, 247, 0.16);
+          box-shadow: inset 3px 0 0 #7aa2f7;
+        }
+
         .item-text-box { font-size: 14px; }
-        .item-subtext { font-size: 12px; opacity: 0.55; }
-        .item-image-text { font-size: 28px; }
+        .item-subtext { font-size: 12px; color: #565f89; }
+        .item-image { -gtk-icon-size: 22px; }
+        .item-image-text { font-size: 22px; }
+        .normal-icons { -gtk-icon-size: 18px; }
+        .large-icons { -gtk-icon-size: 48px; }
 
         .preview {
-          border: 1px solid rgba(122,162,247,0.3);
+          border: 1px solid rgba(122, 162, 247, 0.16);
           border-radius: 12px;
           color: @theme_fg_color;
         }
+
+        /* Pie con los atajos: una sola línea discreta */
         .keybinds {
           padding-top: 10px;
-          border-top: 1px solid rgba(122,162,247,0.2);
-          font-size: 12px;
-          color: @theme_fg_color;
+          border-top: 1px solid rgba(122, 162, 247, 0.10);
+          font-size: 11px;
+          color: #565f89;
         }
-        .keybind-label { padding: 2px 4px; border-radius: 4px; border: 1px solid @theme_fg_color; }
+        .keybind-bind { text-transform: lowercase; opacity: 0.6; }
+        .keybind-label {
+          padding: 1px 5px;
+          border-radius: 4px;
+          border: 1px solid rgba(86, 95, 137, 0.5);
+        }
+
         .error { padding: 10px; background: @error_bg_color; color: @error_fg_color; border-radius: 10px; }
       '';
     };
   };
 
   # ===========================================================================
-  # WOFI (lanzador de apps)
+  # WOFI (solo para menús auxiliares: energía, portapapeles)
   # ===========================================================================
   programs.wofi = {
     enable = true;
     settings = {
-      width = 640;
-      height = 420;
+      width = 520;
+      height = 380;
       location = "center";
       show = "drun";
       prompt = "  Buscar…";
@@ -355,29 +473,29 @@
     };
     style = ''
       window {
-        background-color: rgba(26, 27, 38, 0.96);
-        border: 1px solid rgba(122, 162, 247, 0.35);
+        background-color: rgba(22, 22, 30, 0.96);
+        border: 1px solid rgba(122, 162, 247, 0.16);
         border-radius: 16px;
-        font-family: "JetBrainsMono Nerd Font";
+        font-family: "Inter";
         font-size: 14px;
       }
       #input {
-        margin: 12px;
-        padding: 8px 12px;
+        margin: 14px;
+        padding: 11px 13px;
         background-color: #24283b;
         color: #c0caf5;
-        border: 1px solid rgba(122, 162, 247, 0.3);
-        border-radius: 10px;
+        border: none;
+        border-radius: 11px;
       }
-      #inner-box { margin: 6px 12px 12px 12px; }
+      #inner-box { margin: 0 14px 14px 14px; }
       #entry {
-        padding: 8px 10px;
+        padding: 10px;
         border-radius: 10px;
         color: #c0caf5;
       }
       #entry:selected {
-        background: linear-gradient(45deg, #7aa2f7, #bb9af7);
-        color: #1a1b26;
+        background: rgba(122, 162, 247, 0.16);
+        color: #c0caf5;
       }
       #text { color: inherit; }
     '';
@@ -404,7 +522,7 @@
       timeout-critical = 0;
       fit-to-screen = true;
       control-center-width = 380;
-      control-center-height = 700;
+      control-center-height = 720;
       notification-window-width = 380;
       keyboard-shortcuts = true;
       image-visibility = "when-available";
@@ -435,44 +553,144 @@
     # Estilo Tokyo Night del centro de control / notificaciones
     style = ''
       * {
-        font-family: "JetBrainsMono Nerd Font", sans-serif;
+        font-family: "Inter", "JetBrainsMono Nerd Font", sans-serif;
         font-size: 13px;
       }
+
+      /* Panel: flotante, con margen real y esquinas suaves */
       .control-center {
-        background: rgba(26, 27, 38, 0.97);
-        border: 1px solid rgba(122, 162, 247, 0.35);
+        background: rgba(22, 22, 30, 0.90);
+        border: 1px solid rgba(122, 162, 247, 0.16);
         border-radius: 16px;
         color: #c0caf5;
-        padding: 12px;
+        padding: 14px;
+        margin: 8px;
       }
+
       .control-center .widget-title > label {
-        color: #7aa2f7;
-        font-size: 16px;
-        font-weight: 700;
+        color: #c0caf5;
+        font-size: 15px;
+        font-weight: 600;
       }
-      .notification-row { padding: 4px; }
+      /* "Limpiar" como icono fantasma, no como botón con borde */
+      .control-center .widget-title > button {
+        background: transparent;
+        border: none;
+        color: #565f89;
+        border-radius: 8px;
+        padding: 2px 8px;
+        font-size: 12px;
+      }
+      .control-center .widget-title > button:hover { color: #7aa2f7; }
+
+      /* Fila de "No molestar" como tarjeta */
+      .control-center .widget-dnd {
+        background: #1f2335;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 6px 0;
+        color: #a9b1d6;
+      }
+      .control-center .widget-dnd > switch {
+        background: #292e42;
+        border-radius: 12px;
+        min-width: 42px;
+        min-height: 22px;
+        border: none;
+        box-shadow: none;
+        outline: none;
+      }
+      .control-center .widget-dnd > switch:checked { background: #7aa2f7; }
+      .control-center .widget-dnd > switch slider {
+        background: #c0caf5;
+        border-radius: 50%;
+        min-width: 18px;
+        min-height: 18px;
+        border: none;
+      }
+
+      /* Notificaciones */
+      .notification-row { padding: 3px 0; }
       .notification {
-        background: #24283b;
-        border: 1px solid rgba(122, 162, 247, 0.25);
+        background: #1f2335;
+        border: 1px solid rgba(122, 162, 247, 0.10);
         border-radius: 12px;
         color: #c0caf5;
-        margin: 4px 0;
+        margin: 3px 0;
       }
-      .notification-content { padding: 8px; }
-      .close-button { color: #f7768e; }
-      .widget-dnd > switch { background: #414868; border-radius: 12px; }
-      .widget-dnd > switch:checked { background: #7aa2f7; }
-      .widget-volume { color: #7dcfff; }
-      .widget-battery { color: #e0af68; }
-      .widget-buttons-grid > flowbox > flowboxchild > button {
-        background: #24283b;
-        color: #c0caf5;
-        border-radius: 10px;
-        margin: 3px;
+      .notification-content { padding: 10px; }
+      .notification-default-action:hover { background: rgba(122, 162, 247, 0.06); }
+      .close-button {
+        background: transparent;
+        color: #565f89;
+        border-radius: 50%;
+        margin: 6px;
       }
-      .widget-buttons-grid > flowbox > flowboxchild > button:hover {
+      .close-button:hover { background: rgba(247, 118, 142, 0.16); color: #f7768e; }
+
+      /* Estado vacío: icono discreto, no una imagen raster ampliada */
+      .control-center .empty-state image {
+        -gtk-icon-size: 40px;
+        opacity: 0.25;
+        margin-bottom: 4px;
+      }
+      .control-center .empty-state label {
+        color: #565f89;
+        font-size: 12px;
+      }
+
+      /* Sliders: pista fina, relleno azul, pomo pequeño */
+      .control-center scale trough {
+        background: #292e42;
+        border-radius: 8px;
+        min-height: 6px;
+        border: none;
+      }
+      .control-center scale trough highlight {
         background: #7aa2f7;
-        color: #1a1b26;
+        border-radius: 8px;
+      }
+      .control-center scale slider {
+        background: #c0caf5;
+        border-radius: 50%;
+        min-width: 12px;
+        min-height: 12px;
+        border: none;
+        box-shadow: none;
+      }
+      .control-center .widget-volume,
+      .control-center .widget-backlight { color: #a9b1d6; }
+      .control-center .widget-battery { color: #c0caf5; }
+
+      /* MPRIS (reproductor) */
+      .control-center .widget-mpris {
+        background: #1f2335;
+        border-radius: 12px;
+        padding: 10px;
+        margin: 6px 0;
+      }
+      .control-center .widget-mpris-title { color: #c0caf5; font-weight: 600; font-size: 13px; }
+      .control-center .widget-mpris-subtitle { color: #565f89; font-size: 12px; }
+      .control-center .widget-mpris button {
+        background: transparent;
+        color: #a9b1d6;
+        border: none;
+        border-radius: 8px;
+      }
+      .control-center .widget-mpris button:hover { color: #7aa2f7; }
+
+      /* Grid de botones (si se añade más adelante) */
+      .control-center .widget-buttons-grid > flowbox > flowboxchild > button {
+        background: #1f2335;
+        color: #a9b1d6;
+        border-radius: 12px;
+        margin: 3px;
+        padding: 10px;
+        border: none;
+      }
+      .control-center .widget-buttons-grid > flowbox > flowboxchild > button:hover {
+        background: rgba(122, 162, 247, 0.16);
+        color: #c0caf5;
       }
     '';
   };
@@ -487,23 +705,54 @@
         hide_cursor = true;
         grace = 0;
       };
+
+      # Fondo: el mismo wallpaper, difuminado. Mucho más elegante que negro.
+      background = [
+        {
+          monitor = "";
+          path = "/etc/tokyo-night-wallpaper.png";
+          blur_passes = 3;
+          blur_size = 8;
+          brightness = 0.5;
+        }
+      ];
+
+      input-field = [
+        {
+          monitor = "";
+          size = "260, 48";
+          outline_thickness = 2;
+          dots_center = true;
+          rounding = 12;
+          outer_color = "rgb(7aa2f7)";
+          inner_color = "rgba(22, 22, 30, 0.9)";
+          font_color = "rgb(c0caf5)";
+          placeholder_text = "Contraseña…";
+          fade_on_empty = false;
+          position = "0, -120";
+          halign = "center";
+          valign = "center";
+        }
+      ];
+
       label = [
         {
           monitor = "";
           text = "$TIME";
-          color = "rgb(122, 162, 247)";
+          color = "rgb(c0caf5)";
           font_size = 96;
-          font_family = "JetBrainsMono Nerd Font";
-          position = "0, 180";
+          font_family = "Inter";
+          position = "0, 120";
           halign = "center";
           valign = "center";
         }
         {
           monitor = "";
-          text = "  macnix";
-          color = "rgb(c0caf5)";
-          font_size = 18;
-          position = "0, 90";
+          text = "macnix · NixOS";
+          color = "rgb(86, 95, 137)";
+          font_size = 14;
+          font_family = "Inter";
+          position = "0, 60";
           halign = "center";
           valign = "center";
         }

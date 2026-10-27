@@ -29,22 +29,90 @@
     enableZshIntegration = true;     # se activa dentro de zsh
 
     settings = {
-      # `lib.concatStrings [ ... ]` junta varios textos en uno.
-      # Cada `$algo` es un "módulo" de starship:
-      #   $directory    → carpeta actual
-      #   $git_branch   → rama de git
-      #   $git_status   → estado de git
-      #   $nix_shell    → si estás en un shell de Nix
-      #   $cmd_duration → cuánto tardó el último comando
-      #   $line_break   → salto de línea
-      #   $character    → el símbolo del prompt
+      # -------------------------------------------------------------------
+      # PALETA TOKYO NIGHT
+      # -------------------------------------------------------------------
+      # Definimos nombres de color y luego los usamos como "fg:blue", etc.
+      palettes.tokyo-night = {
+        blue = "#7aa2f7";
+        purple = "#bb9af7";
+        cyan = "#7dcfff";
+        green = "#9ece6a";
+        yellow = "#e0af68";
+        red = "#f7768e";
+        fg = "#c0caf5";
+        comment = "#565f89";
+      };
+      palette = "tokyo-night";
+      add_newline = true;
+
+      # -------------------------------------------------------------------
+      # FORMATO DEL PROMPT (dos líneas)
+      # -------------------------------------------------------------------
+      # Primera línea: carpeta, rama de git, estado, entorno Nix... y la hora
+      # pegada a la derecha ($fill rellena el hueco).
+      # Segunda línea: el símbolo ❯ donde escribes.
+      #
+      # `lib.concatStrings [ ... ]` junta todos los trozos en un solo texto.
       format = lib.concatStrings [
-        "$directory$git_branch$git_status$nix_shell$cmd_duration$line_break$character"
+        "$directory"
+        "$git_branch"
+        "$git_status"
+        "$nix_shell"
+        "$cmd_duration"
+        "$fill"
+        "$time"
+        "$line_break"
+        "$character"
       ];
 
+      # Carpeta actual (azul, en negrita)
+      directory = {
+        style = "fg:blue bold";
+        format = "[$path]($style)";
+        truncation_length = 3;     # recorta rutas muy largas
+        truncate_to_repo = true;   # dentro de un repo muestra desde la raíz
+      };
+
+      # Rama de git (morado) y estado (amarillo)
+      git_branch = {
+        style = "fg:purple";
+        format = "[ $branch]($style)";
+      };
+      git_status = {
+        style = "fg:yellow";
+        format = "([$all_status$ahead_behind]($style) )";
+      };
+
+      # Entorno de Nix (cian) cuando estás dentro de un `nix develop`
+      nix_shell = {
+        style = "fg:cyan";
+        format = "[ $state]($style)";
+      };
+
+      # Duración del último comando (solo si tarda más de 2s)
+      cmd_duration = {
+        min_time = 2000;
+        style = "fg:comment";
+        format = "[ $duration]($style)";
+      };
+
+      # Hora a la derecha de la primera línea (gris discreto)
+      time = {
+        disabled = false;
+        time_format = "%H:%M";
+        style = "fg:comment";
+        format = "[$time]($style)";
+      };
+
+      # Espacios que se estiran hasta el borde derecho
+      fill.symbol = " ";
+
+      # El símbolo final: verde si todo fue bien, rojo si el comando falló
       character = {
-        success_symbol = "[❯](bold green)";  # prompt normal (verde)
-        error_symbol = "[❯](bold red)";      # prompt si el comando falló (rojo)
+        success_symbol = "[❯](bold green)";
+        error_symbol = "[❯](bold red)";
+        vimcmd_symbol = "[❮](bold purple)";
       };
     };
   };

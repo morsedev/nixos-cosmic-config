@@ -59,6 +59,35 @@
   services.displayManager.defaultSession = "hyprland-uwsm";
 
   # ---------------------------------------------------------------------------
+  # FONDO DE PANTALLA (generado, no descargado)
+  # ---------------------------------------------------------------------------
+  # Lo creamos con ImageMagick en vez de bajar una foto: no hay que versionar un
+  # binario en el repo y siempre encaja con la paleta Tokyo Night.
+  #
+  # Cómo funciona el comando:
+  #   - `gradient:`   degradado vertical (azul noche -> casi negro).
+  #   - `-draw ellipse` tres manchas de luz azul, morada y turquesa.
+  #   - `-blur 0x70`  las difumina (efecto "aurora").
+  #   - `-resize`     lo escala al tamaño exacto del panel (2560x1600).
+  #   - `+noise`      grano sutil, evita el aspecto de plástico.
+  #
+  # `runCommand` es una "receta" de Nix: al construirla produce un PNG en /nix/store.
+  # El resultado se expone como /etc/tokyo-night-wallpaper.png.
+  environment.etc."tokyo-night-wallpaper.png".source =
+    pkgs.runCommand "tokyo-night-wallpaper.png" {
+      nativeBuildInputs = [ pkgs.imagemagick ];
+    } ''
+      magick -size 1280x800 gradient:'#1c2438'-'#0b0c12' \
+        -fill 'rgba(122,162,247,0.30)' -draw 'ellipse 300,80 560,460 0,360' \
+        -fill 'rgba(187,154,247,0.26)' -draw 'ellipse 1080,720 600,470 0,360' \
+        -fill 'rgba(115,218,202,0.16)' -draw 'ellipse 950,110 380,320 0,360' \
+        -blur 0x70 \
+        -resize 2560x1600! \
+        -attenuate 0.03 +noise Gaussian \
+        "$out"
+    '';
+
+  # ---------------------------------------------------------------------------
   # TOUCH BAR (tiny-dfr)
   # ---------------------------------------------------------------------------
   # En los MacBook Pro 13" M2 la Touch Bar es una pantalla DSI aparte. tiny-dfr

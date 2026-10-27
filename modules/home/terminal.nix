@@ -20,13 +20,16 @@
     # archivo de configuración.
     settings = {
       font-family = "JetBrainsMono Nerd Font";  # fuente (con iconos)
-      font-size = 13;                            # tamaño
+      font-size = 13.5;                          # tamaño
       cursor-style = "block";                    # forma del cursor
       cursor-style-blink = true;                 # cursor parpadeante
-      window-padding-x = 8;                      # margen horizontal interno
-      window-padding-y = 8;                      # margen vertical interno
-      window-decoration = true;                  # muestra la barra de la ventana
-      background-opacity = 0.97;                 # ligeramente transparente
+      window-padding-x = 16;                     # margen horizontal interno
+      window-padding-y = 14;                     # margen vertical interno
+      window-padding-balance = true;             # reparte el padding por igual
+      window-decoration = false;                 # sin barra de título (la pone Hyprland)
+      background-opacity = 0.90;                 # transparencia (Hyprland le aplica blur)
+      minimum-contrast = 1.1;                    # evita texto ilegible sobre el fondo
+      confirm-close-surface = false;             # cerrar con Cmd+W sin preguntar
 
       # Atajos de teclado propios de Ghostty.
       # `super` en Linux = la tecla Cmd/Windows.

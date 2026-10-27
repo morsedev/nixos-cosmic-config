@@ -25,6 +25,14 @@
     # Fuerza modo oscuro.
     polarity = "dark";
 
+    # Cursor del sistema (GTK + apps X11/Wayland). El cursor por defecto de
+    # Adwaita es lo primero que delata un escritorio sin personalizar.
+    cursor = {
+      package = pkgs.bibata-cursors;
+      name = "Bibata-Modern-Ice";
+      size = 24;
+    };
+
     # -------------------------------------------------------------------------
     # FUENTES
     # -------------------------------------------------------------------------
@@ -48,11 +56,12 @@
       };
 
       # Tamaños (en puntos) por contexto.
+      # OJO: 11 es demasiado pequeño; por debajo de 12 el texto "parece de juguete".
       sizes = {
         terminal = 13;
-        applications = 11;
-        desktop = 11;
-        popups = 11;
+        applications = 12;
+        desktop = 12;
+        popups = 12;
       };
     };
 

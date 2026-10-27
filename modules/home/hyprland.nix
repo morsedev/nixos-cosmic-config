@@ -29,12 +29,27 @@
         "DSI-1,disable"               # Touch Bar: no usarla como monitor
       ];
 
+      # Variables de entorno de la sesión.
+      # El cursor es lo primero que "delata" un escritorio sin personalizar.
+      env = [
+        "XCURSOR_THEME,Bibata-Modern-Ice"
+        "XCURSOR_SIZE,24"
+        "HYPRCURSOR_THEME,Bibata-Modern-Ice"
+        "HYPRCURSOR_SIZE,24"
+      ];
+
       # --- Apariencia general ---
       general = {
         gaps_in = 5;
-        gaps_out = 15;
+        gaps_out = 12;
         border_size = 2;
-        # (los colores del borde los pone Stylix automáticamente — Tokyo Night)
+
+        # Borde ACTIVO con degradado azul -> morado en diagonal (45deg).
+        # Es el truco más barato para que una ventana parezca "premium".
+        col.active_border = "rgba(7aa2f7ee) rgba(bb9af7ee) 45deg";
+        # Borde inactivo: gris azulado muy discreto.
+        col.inactive_border = "rgba(292e42ff)";
+
         layout = "dwindle";
         resize_on_border = true;
         allow_tearing = false;
@@ -42,28 +57,28 @@
 
       # --- Decoración (redondeo, sombras, blur) ---
       decoration = {
-        rounding = 12;
-        active_opacity = 1.0;
-        inactive_opacity = 0.92;
+        rounding = 14;
+        # Un pelín de transparencia: deja ver el blur del fondo.
+        active_opacity = 0.97;
+        inactive_opacity = 0.90;
         fullscreen_opacity = 1.0;
 
         shadow = {
           enabled = true;
-          range = 20;
+          range = 24;
           render_power = 3;
-          # (el color de la sombra lo pone Stylix)
+          color = "rgba(00000066)";
         };
 
         blur = {
           enabled = true;
-          size = 6;
+          size = 7;
           passes = 3;
           new_optimizations = true;
           xray = false;
           noise = 0.02;
-          contrast = 1.1;
+          contrast = 1.05;
           brightness = 0.9;
-          # Desactivar blur en apps concretas (opcional)
           popups = true;
         };
       };
@@ -72,19 +87,20 @@
       animations = {
         enabled = true;
         bezier = [
-          "ease,0.05,0.9,0.1,1.05"
+          "ease,0.05,0.9,0.1,1"
           "linear,0,0,1,1"
         ];
         animation = [
-          "windows,1,6,ease"
-          "windowsOut,1,6,ease"
-          "windowsMove,1,6,ease"
-          "fade,1,10,ease"
-          "fadeOut,1,10,ease"
-          "workspaces,1,5,ease"
-          "border,1,10,ease"
+          "windows,1,4,ease"
+          "windowsOut,1,4,ease"
+          "windowsMove,1,4,ease"
+          "fade,1,8,ease"
+          "fadeOut,1,8,ease"
+          "workspaces,1,4,ease"
+          "border,1,8,ease"
           "borderangle,1,30,linear,loop"
           "specialWorkspace,1,4,ease"
+          "layers,1,3,ease"
         ];
       };
 
@@ -111,12 +127,38 @@
         disable_splash_rendering = true;
       };
 
+      # --- Reglas de CAPAS (waybar, walker, swaync) ---
+      # `blur, <namespace>` difumina lo que hay DETRÁS de esa capa.
+      # Así los paneles translúcidos se ven "de cristal" sobre el wallpaper.
+      # OJO: no aplicamos blur a `waybar` porque su capa ocupa toda la
+      # pantalla y difuminaría una franja completa en vez de solo la barra.
+      layerrule = [
+        "blur, walker"
+        "ignorezero, walker"
+        "blur, swaync-control-center"
+        "blur, swaync-notification-window"
+        "ignorezero, swaync-control-center"
+        "ignorezero, swaync-notification-window"
+      ];
+
       # --- Programas que arrancan con la sesión ---
       exec-once = [
         "waybar"
-        "swaybg -c '#1a1b26'"
+
+        # Wallpaper generado en modules/hyprland.nix (se instala en
+        # /etc/tokyo-night-wallpaper.png). `-m fill` lo escala sin deformar.
+        "swaybg -i /etc/tokyo-night-wallpaper.png -m fill"
+
+        # Icono de red y diálogos de permisos.
         "nm-applet --indicator"
         "/run/current-system/sw/libexec/polkit-gnome-authentication-agent-1"
+
+        # Guardar el portapapeles en el historial (sin esto `Super+C` sale vacío).
+        "wl-paste --type text --watch cliphist store"
+        "wl-paste --type image --watch cliphist store"
+
+        # Cursor coherente en toda la sesión.
+        "hyprctl setcursor Bibata-Modern-Ice 24"
       ];
 
       # --- ATAJOS DE TECLADO ---
