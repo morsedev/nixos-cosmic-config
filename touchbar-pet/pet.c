@@ -21,6 +21,7 @@
 #include <dirent.h>
 #include <poll.h>
 #include <sys/ioctl.h>
+#include <linux/input.h>
 #include <sys/mman.h>
 
 #include <xf86drm.h>
