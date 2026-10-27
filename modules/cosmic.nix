@@ -15,7 +15,8 @@
 
   # ============ FONT (para terminales, editor, etc.) ============
   fonts.packages = with pkgs; [
-    (nerd-fonts.override { fonts = [ "JetBrainsMono" "FiraCode" ]; })
+    nerd-fonts.jetbrains-mono
+    nerd-fonts.fira-code
     noto-fonts
     noto-fonts-emoji
     inter

@@ -14,7 +14,7 @@
     # Fuentes del sistema
     fonts = {
       monospace = {
-        package = pkgs.nerd-fonts.override { fonts = [ "JetBrainsMono" ]; };
+        package = pkgs.nerd-fonts.jetbrains-mono;
         name = "JetBrainsMono Nerd Font";
       };
       sansSerif = {
