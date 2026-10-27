@@ -13,6 +13,9 @@
 {
   wayland.windowManager.hyprland = {
     enable = true;
+    # Usar la config clásica (hyprlang): exec-once/bind/monitor fiables.
+    # El formato Lua que genera HM en tu versión no ejecuta bien exec-once.
+    configType = "hyprlang";
     # Integración con systemd (mejor gestión de la sesión y servicios).
     systemd.enable = true;
 

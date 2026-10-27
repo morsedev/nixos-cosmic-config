@@ -56,7 +56,7 @@
 
   # Enlazar los temas de SDDM en el perfil del sistema (si no, no aparecen).
   environment.pathsToLink = [ "/share/sddm/themes" ];
-  services.displayManager.defaultSession = "hyprland";
+  services.displayManager.defaultSession = "hyprland-uwsm";
 
   # ---------------------------------------------------------------------------
   # TOUCH BAR (tiny-dfr)
