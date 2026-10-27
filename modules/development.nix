@@ -33,7 +33,7 @@
 
     # --- Node / TypeScript ---
     nodejs_22
-    nodePackages.typescript-language-server
+    typescript-language-server
 
     # --- Compiladores base ---
     gcc

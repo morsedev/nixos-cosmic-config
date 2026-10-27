@@ -251,7 +251,7 @@
       lldb              # incluye lldb-dap (debugger para Rust/Swift/C/C++)
       nixpkgs-fmt
       stylua
-      nodePackages.prettier
+      prettier
       ripgrep
       fd
     ];
