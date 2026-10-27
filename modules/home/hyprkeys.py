@@ -226,7 +226,10 @@ def main():
     media = []
     others = []
     for (dispatcher, arg), bind in table.items():
-        if (dispatcher, arg) in used or bind["mouse"]:
+        if (dispatcher, arg) in used:
+            continue
+        # Los binds de ratón ya tienen su propia sección.
+        if dispatcher in ("movewindow", "resizewindow"):
             continue
         raw = bind["key"] or ""
         if raw.startswith("XF86"):
