@@ -110,6 +110,11 @@ in
       # Variables de entorno de la sesión.
       # El cursor es lo primero que "delata" un escritorio sin personalizar.
       env = [
+        # libadwaita (Nautilus, File Roller, pwvucontrol...) intenta preguntar el
+        # modo oscuro al portal del sistema. En este equipo ese portal no
+        # arranca bien, así que le decimos que NO lo use y lea directamente
+        # dconf (donde ya está "prefer-dark"). Sin esto, GTK4 sale en BLANCO.
+        "ADW_DISABLE_PORTAL,1"
         "XCURSOR_THEME,Bibata-Modern-Ice"
         "XCURSOR_SIZE,24"
         "HYPRCURSOR_THEME,Bibata-Modern-Ice"

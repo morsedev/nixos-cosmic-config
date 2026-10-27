@@ -56,6 +56,46 @@
       "gtk-decoration-layout" = "appmenu:minimize,maximize,close";
     };
 
+    # Colores exactos de Tokyo Night para apps GTK3 (pavucontrol,
+    # nm-connection-editor, diálogos de archivo...).
+    gtk3.extraCss = ''
+      @define-color theme_bg_color #1a1b26;
+      @define-color theme_fg_color #c0caf5;
+      @define-color theme_base_color #16161e;
+      @define-color theme_text_color #c0caf5;
+      @define-color theme_selected_bg_color #7aa2f7;
+      @define-color theme_selected_fg_color #16161e;
+      @define-color insensitive_bg_color #1f2335;
+      @define-color insensitive_fg_color #565f89;
+      @define-color borders #292e42;
+
+      headerbar, .titlebar { background: #16161e; color: #c0caf5; }
+      button { border-color: #292e42; }
+      tooltip { background: #1f2335; color: #c0caf5; }
+    '';
+
+    # Los mismos colores para GTK4/libadwaita (Nautilus, File Roller,
+    # pwvucontrol). Aquí se sobreescriben las variables de libadwaita.
+    gtk4.extraCss = ''
+      @define-color accent_bg_color #7aa2f7;
+      @define-color accent_color #7aa2f7;
+      @define-color accent_fg_color #16161e;
+      @define-color window_bg_color #1a1b26;
+      @define-color window_fg_color #c0caf5;
+      @define-color view_bg_color #16161e;
+      @define-color view_fg_color #c0caf5;
+      @define-color headerbar_bg_color #16161e;
+      @define-color headerbar_fg_color #c0caf5;
+      @define-color headerbar_border_color #292e42;
+      @define-color sidebar_bg_color #16161e;
+      @define-color sidebar_fg_color #a9b1d6;
+      @define-color card_bg_color #1f2335;
+      @define-color card_fg_color #c0caf5;
+      @define-color popover_bg_color #1f2335;
+      @define-color dialog_bg_color #1a1b26;
+      @define-color borders #292e42;
+    '';
+
     # Lo mismo para apps GTK4 (Nautilus nuevo, diálogos modernos...).
     gtk4.extraConfig = {
       "gtk-application-prefer-dark-theme" = 1;
