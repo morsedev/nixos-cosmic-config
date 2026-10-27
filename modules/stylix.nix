@@ -64,6 +64,13 @@
     targets = {
       gtk.enable = true;   # apps GTK (Nautilus, etc.)
       qt.enable = true;    # apps Qt
+      # Desactivamos los targets cuyo estilo damos a mano (Tokyo Night) para
+      # que no entren en conflicto con nuestras configs de Hyprland/bar/paneles.
+      hyprland.enable = false;
+      hyprlock.enable = false;
+      waybar.enable = false;
+      swaync.enable = false;
+      wofi.enable = false;
     };
   };
 }
