@@ -125,15 +125,6 @@
           || notify "Error" "No se pudo conectar con $name"
       fi
     '')
-  ];
-
-  # ---------------------------------------------------------------------------
-  # AJUSTES DEL SISTEMA  (Super + I)
-  # ---------------------------------------------------------------------------
-  # gnome-control-center da las mismas secciones que COSMIC Settings (fecha y
-  # hora, zona horaria, red, bluetooth, sonido, energía...). Aquí se agrupan en
-  # un menú para llegar rápido a cada una.
-  home.packages = [
     pkgs.gnome-control-center
 
     (pkgs.writeShellScriptBin "settings" ''
@@ -171,4 +162,12 @@
       esac
     '')
   ];
+
+  # ---------------------------------------------------------------------------
+  # AJUSTES DEL SISTEMA  (Super + I)
+  # ---------------------------------------------------------------------------
+  # gnome-control-center da las mismas secciones que COSMIC Settings (fecha y
+  # hora, zona horaria, red, bluetooth, sonido, energía...). Aquí se agrupan en
+  # un menú para llegar rápido a cada una.
+
 }
