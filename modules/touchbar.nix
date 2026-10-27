@@ -143,30 +143,7 @@ in
   };
 
   # Comando `touchbar-pet` (on/off/status)
-  environment.systemPackages = [
-    (pkgs.writeShellScriptBin "touchbar-pet" ''
-      case "''${1:-status}" in
-        on)
-          sudo systemctl stop tiny-dfr 2>/dev/null || true
-          sudo systemctl start touchbar-pet
-          notify-send -a "Touch Bar" "Gato activado" 2>/dev/null || true
-          ;;
-        off)
-          sudo systemctl stop touchbar-pet 2>/dev/null || true
-          sudo systemctl start tiny-dfr
-          notify-send -a "Touch Bar" "Botones restaurados" 2>/dev/null || true
-          ;;
-        status)
-          printf 'tiny-dfr:     %s\n' "$(systemctl is-active tiny-dfr)"
-          printf 'touchbar-pet: %s\n' "$(systemctl is-active touchbar-pet)"
-          ;;
-        *)
-          echo "uso: touchbar-pet on|off|status"
-          exit 1
-          ;;
-      esac
-    '')
-  ];
+
 
   # Comando `touchbar`
   environment.systemPackages = [
@@ -201,6 +178,28 @@ in
       sudo systemctl restart tiny-dfr
 
       notify-send -a "Touch Bar" "Layout aplicado" "$preset" 2>/dev/null || true
+    '')
+    (pkgs.writeShellScriptBin "touchbar-pet" ''
+      case "''${1:-status}" in
+        on)
+          sudo systemctl stop tiny-dfr 2>/dev/null || true
+          sudo systemctl start touchbar-pet
+          notify-send -a "Touch Bar" "Gato activado" 2>/dev/null || true
+          ;;
+        off)
+          sudo systemctl stop touchbar-pet 2>/dev/null || true
+          sudo systemctl start tiny-dfr
+          notify-send -a "Touch Bar" "Botones restaurados" 2>/dev/null || true
+          ;;
+        status)
+          printf 'tiny-dfr:     %s\n' "$(systemctl is-active tiny-dfr)"
+          printf 'touchbar-pet: %s\n' "$(systemctl is-active touchbar-pet)"
+          ;;
+        *)
+          echo "uso: touchbar-pet on|off|status"
+          exit 1
+          ;;
+      esac
     '')
   ];
 }
