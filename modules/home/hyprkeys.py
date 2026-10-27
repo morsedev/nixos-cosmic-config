@@ -109,6 +109,10 @@ SECTIONS = [
         ("exec", 'grim -g "$(slurp)" - | satty --filename -', "Captura de una región"),
         ("exec", "grim - | satty --filename -", "Captura de toda la pantalla"),
     ]),
+    ("ESCRITORIO", [
+        ("exec", "wallpaper next", "Siguiente fondo de pantalla"),
+        ("exec", "wallpaper menu", "Elegir fondo de pantalla"),
+    ]),
     ("AYUDA", [
         ("exec", "hyprkeys-open", "Esta chuleta de atajos"),
     ]),

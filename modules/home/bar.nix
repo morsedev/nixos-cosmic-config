@@ -702,7 +702,7 @@ in
       background = [
         {
           monitor = "";
-          path = "/etc/tokyo-night-wallpaper.png";
+          path = "/etc/wallpapers/01-shinjuku.jpg";
           blur_passes = 3;
           blur_size = 8;
           brightness = 0.5;

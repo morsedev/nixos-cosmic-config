@@ -59,46 +59,19 @@
   services.displayManager.defaultSession = "hyprland-uwsm";
 
   # ---------------------------------------------------------------------------
-  # FONDO DE PANTALLA (generado, no descargado)
+  # FONDOS DE PANTALLA
   # ---------------------------------------------------------------------------
-  # Lo creamos con ImageMagick en vez de bajar una foto: no hay que versionar un
-  # binario en el repo y siempre encaja con la paleta Tokyo Night.
+  # Las imágenes viven en la carpeta `wallpapers/` del repo, ya recortadas a
+  # 2560x1600 (la resolución exacta de la pantalla del Mac) y con el color
+  # ajustado a Tokyo Night. Aquí solo se copian a /etc/wallpapers/.
   #
-  # Cómo funciona el comando:
-  #   - `gradient:`   degradado vertical (azul noche -> casi negro).
-  #   - `-draw ellipse` tres manchas de luz azul, morada y turquesa.
-  #   - `-blur 0x70`  las difumina (efecto "aurora").
-  #   - `-resize`     lo escala al tamaño exacto del panel (2560x1600).
-  #   - `+noise`      grano sutil, evita el aspecto de plástico.
-  #
-  # `runCommand` es una "receta" de Nix: al construirla produce un PNG en /nix/store.
-  # El resultado se expone como /etc/tokyo-night-wallpaper.png.
-  environment.etc."tokyo-night-wallpaper.png".source =
-    pkgs.runCommand "tokyo-night-wallpaper.png" {
-      nativeBuildInputs = [ pkgs.imagemagick ];
-    } ''
-      # 1) Base: degradado vertical oscuro (arriba MÁS oscuro, para que la
-      #    barra siempre tenga contraste; abajo se aclara un poco).
-      # 2) Tres manchas de luz (azul, morado, turquesa), difuminadas.
-      # 3) Rejilla fina de 64px (estructura, estilo "técnico").
-      # 4) Grano sutil para que no se vea como un degradado de plástico.
-      magick -size 1280x800 gradient:'#131722'-'#1b1c2a' \
-        -fill 'rgba(122,162,247,0.34)' -draw 'ellipse 250,700 640,540 0,360' \
-        -fill 'rgba(187,154,247,0.30)' -draw 'ellipse 1060,760 660,540 0,360' \
-        -fill 'rgba(115,218,202,0.12)' -draw 'ellipse 900,120 380,300 0,360' \
-        -blur 0x80 \
-        -resize 2560x1600! \
-        "$TMPDIR/base.png"
-
-      grid=""
-      for x in $(seq 0 64 2560); do grid="$grid line $x,0 $x,1600"; done
-      for y in $(seq 0 64 1600); do grid="$grid line 0,$y 2560,$y"; done
-
-      magick "$TMPDIR/base.png" \
-        -stroke 'rgba(122,162,247,0.07)' -strokewidth 1 -draw "$grid" \
-        -attenuate 0.02 +noise Gaussian \
-        "$out"
-    '';
+  # Se cambian con:  Super + W  (siguiente)   ·   Super + Shift + W  (menú)
+  environment.etc = {
+    "wallpapers/01-shinjuku.jpg".source = ../wallpapers/01-shinjuku.jpg;
+    "wallpapers/02-aurora.jpg".source = ../wallpapers/02-aurora.jpg;
+    "wallpapers/03-manhattan.jpg".source = ../wallpapers/03-manhattan.jpg;
+    "wallpapers/04-tokyo-street.jpg".source = ../wallpapers/04-tokyo-street.jpg;
+  };
 
   # ---------------------------------------------------------------------------
   # TOUCH BAR (tiny-dfr)

@@ -22,6 +22,59 @@ let
     flakeIgnore = [ "E501" ];
   } ./hyprkeys.py;
 
+  # ---------------------------------------------------------------------------
+  # CAMBIAR DE FONDO  (Super + W / Super + Shift + W)
+  # ---------------------------------------------------------------------------
+  # Script pequeño con tres modos:
+  #   wallpaper restore   -> aplica el último usado (al iniciar sesión)
+  #   wallpaper next      -> pasa al siguiente de la lista
+  #   wallpaper menu      -> abre un menú para elegir
+  # Guarda la elección en ~/.cache/wallpaper para recordarla al reiniciar.
+  wallpaper = pkgs.writeShellScriptBin "wallpaper" ''
+    set -euo pipefail
+
+    dir=/etc/wallpapers
+    cache="''${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper"
+    mkdir -p "$(dirname "$cache")"
+
+    mapfile -t files < <(find "$dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.png' \) | sort)
+    if [ "''${#files[@]}" -eq 0 ]; then
+      notify-send "Fondos" "No hay imágenes en $dir" 2>/dev/null || true
+      exit 1
+    fi
+
+    current=""
+    [ -f "$cache" ] && current="$(cat "$cache")"
+
+    case "''${1:-restore}" in
+      restore)
+        pick="''${current:-''${files[0]}}"
+        ;;
+      next)
+        idx=-1
+        for i in "''${!files[@]}"; do
+          [ "''${files[$i]}" = "$current" ] && idx=$i
+        done
+        pick="''${files[$(( (idx + 1) % ''${#files[@]} ))]}"
+        ;;
+      menu)
+        name="$(printf '%s\n' "''${files[@]}" | xargs -n1 basename | wofi --dmenu --prompt 'Fondo' --width 420 --height 320 || true)"
+        [ -n "$name" ] || exit 0
+        pick="$dir/$name"
+        ;;
+      *)
+        pick="$dir/$1"
+        ;;
+    esac
+
+    [ -f "$pick" ] || pick="''${files[0]}"
+
+    pkill -f 'swaybg -i' 2>/dev/null || true
+    setsid -f swaybg -i "$pick" -m fill >/dev/null 2>&1
+    echo "$pick" > "$cache"
+    notify-send -a wallpaper "Fondo de pantalla" "$(basename "$pick")" 2>/dev/null || true
+  '';
+
   # Abre la chuleta en una ventana flotante y centrada.
   # El prefijo [float;center;size W H] es una "regla de ejecución" de Hyprland.
   # `lib.getExe` da la ruta absoluta del programa: así el atajo funciona aunque
@@ -32,7 +85,7 @@ let
 in
 {
   # Los dos comandos quedan disponibles en la terminal.
-  home.packages = [ hyprkeys hyprkeys-open ];
+  home.packages = [ hyprkeys hyprkeys-open wallpaper ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -163,9 +216,8 @@ in
       exec-once = [
         "waybar"
 
-        # Wallpaper generado en modules/hyprland.nix (se instala en
-        # /etc/tokyo-night-wallpaper.png). `-m fill` lo escala sin deformar.
-        "swaybg -i /etc/tokyo-night-wallpaper.png -m fill"
+        # Fondo de pantalla (restaura el último elegido con Super+W).
+        "${lib.getExe wallpaper} restore"
 
         # Icono de red y diálogos de permisos.
         "nm-applet --indicator"
@@ -202,6 +254,10 @@ in
 
         # Chuleta de atajos (ventana flotante)
         "$mod, slash, exec, ${lib.getExe hyprkeys-open}"
+
+        # Fondos de pantalla
+        "$mod, W, exec, ${lib.getExe wallpaper} next"
+        "$mod SHIFT, W, exec, ${lib.getExe wallpaper} menu"
 
         # Mover el foco
         "$mod, left, movefocus, l"
