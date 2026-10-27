@@ -97,7 +97,19 @@
     enable = true;
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
+      xdg-desktop-portal-hyprland
     ];
+
+    # -------------------------------------------------------------------------
+    # IMPORTANTE: sin esto, las apps GTK4/libadwaita (Nautilus, File Roller,
+    # pwvucontrol...) NO saben que el escritorio es oscuro y se quedan en
+    # blanco. El motivo es que falta la interfaz org.freedesktop.portal.Settings,
+    # que es la que consulta libadwaita. Aquí decimos qué backend la implementa.
+    # -------------------------------------------------------------------------
+    config.hyprland = {
+      default = [ "hyprland" "gtk" ];
+      "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+    };
   };
 
   # ---------------------------------------------------------------------------

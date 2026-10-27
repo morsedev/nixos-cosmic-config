@@ -499,10 +499,13 @@ in
         border-radius: 10px;
         color: #c0caf5;
       }
-      #entry:selected {
-        background: rgba(122, 162, 247, 0.16);
+      #entry:selected,
+      #entry:selected #text {
+        background: rgba(122, 162, 247, 0.22);
         color: #c0caf5;
+        border-radius: 8px;
       }
+      #outer-box { padding: 8px; }
       #text { color: inherit; }
     '';
   };

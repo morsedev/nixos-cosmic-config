@@ -41,11 +41,13 @@
             print mark "| " $2
           }' | sort -u -t'|' -k2)"
 
+      # OJO con el orden: wofi preselecciona la PRIMERA línea, así que las
+      # redes van arriba y las acciones destructivas (apagar) al final.
       choice="$(printf '%s\n%s\n%s\n' \
-        "󰖪  Apagar Wi-Fi" \
-        "󰒓  Editor de red (avanzado)" \
         "$networks" \
-        | wofi --dmenu --prompt 'Wi-Fi' --width 460 --height 460)"
+        "󰒓  Editor de red (avanzado)" \
+        "󰖪  Apagar Wi-Fi" \
+        | wofi --dmenu --dynamic-lines --prompt 'Wi-Fi' --width 460 --height 460)"
 
       case "$choice" in
         "")                     exit 0 ;;
@@ -102,10 +104,10 @@
       )"
 
       choice="$(printf '%s\n%s\n%s\n' \
-        "󰂲  Apagar Bluetooth" \
-        "󰐕  Emparejar dispositivo nuevo" \
         "$list" \
-        | wofi --dmenu --prompt 'Bluetooth' --width 460 --height 420)"
+        "󰐕  Emparejar dispositivo nuevo" \
+        "󰂲  Apagar Bluetooth" \
+        | wofi --dmenu --dynamic-lines --prompt 'Bluetooth' --width 460 --height 420)"
 
       case "$choice" in
         "")                       exit 0 ;;
