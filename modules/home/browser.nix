@@ -46,7 +46,6 @@
         # Permite que userChrome.css se aplique (imprescindible).
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         # La barra de direcciones se funde con el borde de la ventana.
-        "browser.tabs.inTitlebar" = 1;
         # Zen: una sola barra de herramientas (sin segunda fila) y barra
         # lateral PLEGADA por defecto: las pestañas quedan ocultas y solo se
         # ven al pasar el ratón por el borde izquierdo.
@@ -54,10 +53,6 @@
         # de la barra lateral; si además se pliega la lateral, desaparece la
         # barra de direcciones. Por eso aquí va en FALSE: la barra de
         # direcciones se queda arriba, siempre visible.
-        "zen.view.use-single-toolbar" = false;
-        "zen.view.sidebar-expanded" = true;
-        "zen.view.show-newtab-button-top" = false;
-        "zen.view.hide-window-controls" = false;
         # Zen: modo compacto activado desde el arranque.
         # Zen: sin pestañas verticales ni botón de "nueva pestaña" visible.
 
@@ -87,53 +82,9 @@
       # -----------------------------------------------------------------------
       # Aquí "escondemos" todo lo que no sea barra de direcciones + atrás/
       # adelante, y pintamos lo que queda con la paleta Tokyo Night.
-      userChrome = ''
-        /* ================================================================= */
-        /*  ZEN — estilo Tokyo Night (sin tocar la estructura de la interfaz) */
-        /* ================================================================= */
-        /*  Lección aprendida: Zen mueve la barra de direcciones dentro de    */
-        /*  contenedores que cambian según el modo; ocultar "pestañas" con    */
-        /*  CSS deja el navegador sin barra. Aquí solo se pinta el color y    */
-        /*  se oculta la barra de marcadores.                                 */
-
-        :root {
-          --tn-bg:     #16161e;
-          --tn-bg2:    #1f2335;
-          --tn-border: #292e42;
-          --tn-fg:     #c0caf5;
-          --tn-blue:   #7aa2f7;
-        }
-
-        /* Barra de marcadores: fuera (no aporta y ocupa altura) */
-        #PersonalToolbar { display: none !important; }
-
-        /* Colores de la barra superior */
-        #navigator-toolbox,
-        #zen-appcontent-navbar-wrapper {
-          background: var(--tn-bg) !important;
-          border-bottom: 1px solid var(--tn-border) !important;
-        }
-
-        /* Barra de direcciones */
-        #urlbar-background {
-          background: var(--tn-bg2) !important;
-          border: 1px solid var(--tn-border) !important;
-          border-radius: 10px !important;
-        }
-        #urlbar[focused] > #urlbar-background {
-          border-color: var(--tn-blue) !important;
-          box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.20) !important;
-        }
-        #urlbar-input { color: var(--tn-fg) !important; }
-
-        /* Sugerencias */
-        .urlbarView {
-          background: var(--tn-bg) !important;
-          border: 1px solid var(--tn-border) !important;
-          border-radius: 12px !important;
-        }
-        .urlbarView-row[selected] { background: rgba(122, 162, 247, 0.18) !important; }
-      '';
+      # Sin CSS propio: Zen de fábrica, tal cual. Cuando elijamos el diseño
+      # definitivo, se añade aquí.
+      userChrome = "";
     };
   };
 
