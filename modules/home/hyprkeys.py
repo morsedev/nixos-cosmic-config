@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """hyprkeys — chuleta de atajos de Hyprland.
 
 Lee los atajos REALES del compositor con `hyprctl -j binds` y los pinta
