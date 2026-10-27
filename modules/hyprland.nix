@@ -186,5 +186,24 @@
 
   # Polkit (diálogos de autenticación) y keyring.
   security.polkit.enable = true;
+
+  # ---------------------------------------------------------------------------
+  # PERMISOS PARA AJUSTES DEL SISTEMA
+  # ---------------------------------------------------------------------------
+  # Para cambiar fecha, hora y zona horaria desde "Ajustes" hace falta
+  # autenticarse por polkit. En este equipo no hay agente pkexec funcionando,
+  # así que gnome-control-center mostraba el aviso
+  #   "Error — some settings cannot be unlocked"
+  # y los interruptores salían bloqueados. Esta regla permite a los usuarios
+  # del grupo "wheel" (tú) cambiar la hora sin contraseña.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (subject.isInGroup("wheel") &&
+          (action.id.indexOf("org.freedesktop.timedate1.") === 0 ||
+           action.id.indexOf("org.freedesktop.hostname1.") === 0)) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
   services.gnome.gnome-keyring.enable = true;
 }
