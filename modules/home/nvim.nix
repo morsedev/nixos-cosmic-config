@@ -192,8 +192,8 @@
       # --- Calidad de vida ---
       which-key.enable = true;
       comment.enable = true;
-      autopairs.enable = true;
-      surround.enable = true;
+      nvim-autopairs.enable = true;
+      nvim-surround.enable = true;
       leap.enable = true;
       todo-comments.enable = true;
       lualine.enable = true;
