@@ -42,7 +42,8 @@ env:
     extra-substituters = https://cache.nixos.org https://cosmic.cachix.org https://nix-community.cachix.org
     extra-trusted-public-keys = cosmic.cachix.org-1:Dya9IyXD4xd0hV8x1JsDd3CgE6GP5gDdhI5rAeBMKfs= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
     experimental-features = nix-command flakes
-    cores = 0
+    max-jobs = 2
+    cores = 2
 
 jobs:
   # ===========================================================================
@@ -106,7 +107,7 @@ jobs:
     name: Compilar sistema completo (aarch64)
     runs-on: ubuntu-24.04-arm
     # Hasta 5 horas: COSMIC + toolchains son pesados.
-    timeout-minutes: 300
+    timeout-minutes: 350
     # Solo se ejecuta cuando lo lanzas a mano (workflow_dispatch).
     if: github.event_name == 'workflow_dispatch'
 
@@ -118,6 +119,16 @@ jobs:
 
       - name: Instalar Nix (Determinate)
         uses: DeterminateSystems/nix-installer-action@v13
+
+      - name: Liberar espacio en disco
+        run: |
+          echo "Antes:"; df -h /
+          # Borra herramientas preinstaladas que no usamos (libera ~20 GB).
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost \
+                      /usr/local/lib/node_modules /opt/az /usr/lib/google-cloud-sdk || true
+          sudo apt-get clean || true
+          echo "Después:"; df -h /
 
       - name: Compilar el sistema (toplevel)
         run: |
