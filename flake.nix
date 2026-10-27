@@ -31,8 +31,16 @@
   #               cada input descargue su propia copia (más rápido y coherente).
   inputs = {
     # El "sistema operativo entero": miles de paquetes y módulos de NixOS.
-    # "nixos-unstable" = canal de desarrollo (paquetes recientes).
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # ¿Por qué NO usamos `nixos-unstable`?
+    #   El soporte Apple Silicon (input `apple-silicon`) está probado contra un
+    #   nixpkgs CONCRETO. Su release-2026-07-30 fija el rev `e2587ca`, que es
+    #   el MISMO que trae tu ISO (`nixos-26.11.20260723.e2587ca`). Con un
+    #   nixpkgs más nuevo, `linux-asahi-7.1.5` NO compila (cambian APIs internas
+    #   del kernel). Por eso fijamos ese rev exacto.
+    #
+    # Para actualizar en el futuro: espera una release nueva de nixos-apple-silicon,
+    # cambia aquí el rev y ejecuta `nix flake update`.
+    nixpkgs.url = "github:nixos/nixpkgs/e2587caef70cea85dd97d7daab492899902dbf5d";
 
     # Home Manager: configura tu USUARIO (programas, dotfiles, shell...).
     home-manager = {
