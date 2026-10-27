@@ -43,7 +43,7 @@
 
         # --- Arranque ---
         "browser.startup.page" = 1;          # 1 = página en blanco
-        "browser.startup.homepage" = "about:blank";
+        "browser.startup.homepage" = "about:newtab";
         "browser.newtabpage.activity-stream.showSponsored" = false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
         "browser.urlbar.suggest.quicksuggest.sponsored" = false;
@@ -61,6 +61,84 @@
         # Zoom por sitio.
         "browser.zoom.siteSpecific" = true;
       };
+
+      # -----------------------------------------------------------------------
+      # USERCONTENT.CSS — página de nueva pestaña / inicio
+      # -----------------------------------------------------------------------
+      # Se aplica a about:newtab y about:home. Pinta un fondo Tokyo Night con
+      # resplandores azul/morado, oculta el logo de Firefox y estiliza la caja
+      # de búsqueda y los accesos directos.
+      userContent = ''
+        @-moz-document url("about:newtab"),
+                       url("about:home"),
+                       url("about:privatebrowsing") {
+
+          :root {
+            --tn-bg:     #1a1b26;
+            --tn-bg2:    #16161e;
+            --tn-fg:     #c0caf5;
+            --tn-dim:    #565f89;
+            --tn-blue:   #7aa2f7;
+            --tn-purple: #bb9af7;
+          }
+
+          body {
+            background-color: var(--tn-bg) !important;
+            background-image:
+              radial-gradient(900px 520px at 20% 80%, rgba(122, 162, 247, 0.22), transparent 60%),
+              radial-gradient(820px 480px at 80% 74%, rgba(187, 154, 247, 0.18), transparent 62%),
+              radial-gradient(620px 380px at 50% 6%,  rgba(125, 207, 255, 0.10), transparent 65%),
+              linear-gradient(160deg, #16161e 0%, #1a1b26 55%, #12131c 100%) !important;
+            background-attachment: fixed !important;
+            color: var(--tn-fg) !important;
+          }
+
+          /* Marca de agua 東京 (muy sutil) */
+          .outer-wrapper::after {
+            content: "東京";
+            position: fixed;
+            right: 5vw;
+            bottom: 3vh;
+            font-size: 14vw;
+            line-height: 1;
+            color: rgba(187, 154, 247, 0.055);
+            pointer-events: none;
+          }
+
+          /* Sin logo ni textos de bienvenida de Firefox */
+          .logo-and-wordmark { display: none !important; }
+
+          /* Caja de búsqueda */
+          .search-wrapper .search-handoff-button,
+          .search-wrapper input,
+          .search-inner-wrapper,
+          .search-handoff-button {
+            background: rgba(31, 35, 53, 0.92) !important;
+            border: 1px solid #292e42 !important;
+            border-radius: 14px !important;
+            color: var(--tn-fg) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
+          }
+          .search-handoff-button:hover { border-color: var(--tn-blue) !important; }
+
+          /* Accesos directos (webs frecuentes) */
+          .top-site-outer .tile {
+            background: rgba(31, 35, 53, 0.85) !important;
+            border: 1px solid #292e42 !important;
+            border-radius: 14px !important;
+          }
+          .top-site-outer:hover .tile {
+            background: rgba(122, 162, 247, 0.18) !important;
+            border-color: rgba(122, 162, 247, 0.5) !important;
+          }
+          .top-site-outer .title,
+          .top-site-outer .title span { color: #a9b1d6 !important; }
+
+          /* Texto de ayuda del buscador */
+          .search-handoff-button .fake-textbox,
+          .fake-textbox { color: var(--tn-dim) !important; }
+        }
+      '';
 
       # -----------------------------------------------------------------------
       # USERCHROME.CSS — el aspecto
@@ -91,7 +169,7 @@
 
         /* --- 3. Barra superior ------------------------------------------- */
         #nav-bar {
-          background: var(--tn-bg) !important;
+          background: #1a1b26 !important;
           border-top: 0 !important;
           border-bottom: 1px solid var(--tn-border) !important;
           padding: 4px 8px !important;
@@ -101,8 +179,8 @@
         /* --- 4. Barra de direcciones ------------------------------------- */
         #urlbar-background,
         #searchbar {
-          background: var(--tn-bg2) !important;
-          border: 1px solid var(--tn-border) !important;
+          background: #24283b !important;
+          border: 1px solid #3b4261 !important;
           border-radius: 10px !important;
         }
         #urlbar[focused] > #urlbar-background {
@@ -134,6 +212,8 @@
            Ctrl+R recargar · Ctrl+J descargas · Ctrl+L dirección · Alt+Inicio */
         #reload-button,
         #stop-button,
+        #star-button-box,
+        #fxa-toolbar-menu-button,
         #home-button,
         #library-button,
         #downloads-button,
