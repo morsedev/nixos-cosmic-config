@@ -50,7 +50,11 @@
         # Zen: una sola barra de herramientas (sin segunda fila) y barra
         # lateral PLEGADA por defecto: las pestañas quedan ocultas y solo se
         # ven al pasar el ratón por el borde izquierdo.
-        "zen.view.use-single-toolbar" = true;
+        # OJO: `use-single-toolbar = true` mueve la barra de direcciones DENTRO
+        # de la barra lateral; si además se pliega la lateral, desaparece la
+        # barra de direcciones. Por eso aquí va en FALSE: la barra de
+        # direcciones se queda arriba, siempre visible.
+        "zen.view.use-single-toolbar" = false;
         "zen.view.sidebar-expanded" = false;
         "zen.view.show-newtab-button-top" = false;
         "zen.view.hide-window-controls" = false;
