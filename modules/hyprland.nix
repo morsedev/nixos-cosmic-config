@@ -12,6 +12,13 @@
 
 {
   # ---------------------------------------------------------------------------
+  # HORA Y ZONA HORARIA
+  # ---------------------------------------------------------------------------
+  # NTP: mantiene el reloj en hora automáticamente. Sin esto, el interruptor
+  # "Hora automática" de Ajustes sale bloqueado.
+  services.timesyncd.enable = true;
+
+  # ---------------------------------------------------------------------------
   # SHELL DEL SISTEMA
   # ---------------------------------------------------------------------------
   # El usuario usa zsh como shell de login (Home Manager lo configura con
