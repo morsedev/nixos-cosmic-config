@@ -214,8 +214,8 @@
       -- codelldb para Rust/C/C++
       dap.adapters.codelldb = {
         type = "server",
-        port = "${port}",
-        executable = { command = "codelldb", args = { "--port", "${port}" } },
+        port = "''${port}",
+        executable = { command = "codelldb", args = { "--port", "''${port}" } },
       }
       dap.configurations.rust = {
         {
@@ -225,7 +225,7 @@
           program = function()
             return vim.fn.input("Binario: ", vim.fn.getcwd() .. "/target/debug/", "file")
           end,
-          cwd = "${workspaceFolder}",
+          cwd = "''${workspaceFolder}",
           stopOnEntry = false,
         },
       }
@@ -241,7 +241,7 @@
           program = function()
             return vim.fn.input("Binario Swift: ", vim.fn.getcwd() .. "/.build/debug/", "file")
           end,
-          cwd = "${workspaceFolder}",
+          cwd = "''${workspaceFolder}",
         },
       }
     '';
