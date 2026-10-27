@@ -20,4 +20,9 @@
   ];
 
   options.programs.nixarchy.enable = lib.mkEnableOption "perfil Home Manager (IDE, terminal, apps)";
+
+  config = {
+    # Versión de estado de Home Manager (sobreescribible con tu propia versión)
+    home.stateVersion = lib.mkDefault "26.11";
+  };
 }
