@@ -42,24 +42,35 @@
     # cambia aquí el rev y ejecuta `nix flake update`.
     nixpkgs.url = "github:nixos/nixpkgs/e2587caef70cea85dd97d7daab492899902dbf5d";
 
+    # -------------------------------------------------------------------------
+    # ¡IMPORTANTE! Todos los inputs de abajo están FIJADOS a versiones de
+    # ~2026-07-23, la misma fecha que nixpkgs e2587ca y la release de Asahi.
+    # Si usas la rama "master"/"main" de cualquiera de ellos, pedirá opciones
+    # de nixpkgs que aún no existen en e2587ca (p. ej.
+    # `services.displayManager.regreet`) y la evaluación fallará.
+    #
+    # Para actualizarlos, mueve nixpkgs y todos estos revs A LA VEZ, y solo
+    # cuando nixos-apple-silicon publique una release compatible.
+    # -------------------------------------------------------------------------
+
     # Home Manager: configura tu USUARIO (programas, dotfiles, shell...).
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/3b0e6bbd65869af1beadf5963a99befc179d209f";
       inputs.nixpkgs.follows = "nixpkgs";   # usa NUESTRO nixpkgs
     };
 
     # Stylix: aplica un ÚNICO tema de colores a todas las apps (Tokyo Night).
     stylix = {
-      url = "github:danth/stylix/master";
+      url = "github:danth/stylix/66714e5ce44269ecc58c20d9196da8dbe1b27a31";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Zen Browser: el navegador (basado en Firefox, muy configurable).
-    zen-browser.url = "github:0xc000022070/zen-browser-flake";
+    zen-browser.url = "github:0xc000022070/zen-browser-flake/35443b74c3481fb963ee0a53175ab0e8001f2967";
 
     # NixVim: configura Neovim de forma 100% declarativa (plugin por plugin).
     nixvim = {
-      url = "github:nix-community/nixvim";
+      url = "github:nix-community/nixvim/f316e949e0ed9df0e1e0bf645c6dce721d4e230e";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
