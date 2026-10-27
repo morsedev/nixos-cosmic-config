@@ -135,6 +135,35 @@
         box-shadow: none !important;
       }
 
+      /* --- Contraste de pestañas y botones de ventana ---
+         Algunas pestañas quedaban a ~2:1 de contraste y el botón de
+         minimizar casi invisible. */
+      notebook tab label,
+      notebook tab,
+      .tab-label {
+        color: #a9b1d6 !important;
+      }
+      notebook tab:checked label,
+      notebook tab:checked {
+        color: #c0caf5 !important;
+      }
+      headerbar button image,
+      headerbar button,
+      .titlebar button image {
+        color: #c0caf5 !important;
+        opacity: 1 !important;
+      }
+
+      /* Pestaña activa de los "view switcher" (pwvucontrol, etc.) */
+      viewswitcher button.active,
+      viewswitcher button:checked,
+      viewswitcher button.active > label,
+      viewswitcher button:checked > label {
+        background-color: #292e42 !important;
+        color: #c0caf5 !important;
+        box-shadow: inset 0 -2px 0 #7aa2f7 !important;
+      }
+
       /* --- Iconos simbólicos (monocromos) ---
          Los iconos "a color" (carpetas azul brillante, el archivador verde de
          File Roller...) rompen la paleta. Los pasamos a simbólicos SOLO en
