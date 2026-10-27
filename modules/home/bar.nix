@@ -43,6 +43,7 @@ let
     batHalf = glyph "f242";
     batThreeQuarter = glyph "f241";
     batFull = glyph "f240";
+    bluetooth = glyph "f293";    # símbolo de bluetooth
   };
 in
 {
@@ -79,7 +80,7 @@ in
 
       modules-left = [ "custom/launcher" "hyprland/workspaces" ];
       modules-center = [ "clock" "custom/date" ];
-      modules-right = [ "tray" "pulseaudio" "network" "battery" "custom/control" "custom/power" ];
+      modules-right = [ "tray" "pulseaudio" "network" "bluetooth" "battery" "custom/control" "custom/power" ];
 
       # Logo / botón de apps (abre el lanzador)
       # glyph "f313" = logo de NixOS (Nerd Font)
@@ -140,7 +141,7 @@ in
           default = [ ico.volDown ico.volDown ico.volUp ];
         };
         tooltip-format = "{desc} · {volume}%";
-        on-click = "pavucontrol";
+        on-click = "pwvucontrol";
         on-click-right = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
         scroll-step = 5;
       };
@@ -152,7 +153,17 @@ in
         format-disconnected = ico.warning;
         format-linked = ico.warning;
         tooltip-format = "{essid} ({signalStrength}%)";
-        on-click = "nm-connection-editor";
+        on-click = "wifi";
+      };
+
+      # Bluetooth: mismo glifo siempre; se atenúa cuando está apagado.
+      bluetooth = {
+        format = ico.bluetooth;
+        format-connected = ico.bluetooth;
+        format-disabled = ico.bluetooth;
+        format-off = ico.bluetooth;
+        tooltip-format = "{controller_alias}";
+        on-click = "bluetooth";
       };
 
       # Batería
@@ -269,6 +280,7 @@ in
       /* --- Módulos de la derecha: mismo color, icono + número --- */
       #pulseaudio,
       #network,
+      #bluetooth,
       #battery {
         padding: 0 10px;
         margin: 0 2px;
@@ -277,6 +289,8 @@ in
       }
       #pulseaudio.muted { color: #565f89; }
       #network.disconnected { color: #565f89; }
+      #bluetooth.off,
+      #bluetooth.disabled { color: #565f89; }
       #battery.charging,
       #battery.plugged { color: #9ece6a; }
       #battery.warning:not(.charging) { color: #e0af68; }

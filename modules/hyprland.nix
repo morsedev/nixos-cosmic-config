@@ -125,7 +125,8 @@
     playerctl           # control de música
 
     # --- Escritorio ---
-    pavucontrol         # control de volumen
+    pavucontrol         # control de volumen (GTK3, clásico)
+    pwvucontrol         # control de volumen moderno (GTK4/libadwaita)
     networkmanagerapplet # icono de red
     polkit_gnome        # diálogos de permisos (polkit)
     libnotify           # notificaciones (notify-send)

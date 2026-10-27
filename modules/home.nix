@@ -39,6 +39,9 @@
 
     ./home/terminal.nix
 
+    # Menús del sistema (wifi, bluetooth) hechos con wofi.
+    ./home/menus.nix
+
     # Gestor de archivos (Nautilus + Yazi).
     ./home/files.nix
 

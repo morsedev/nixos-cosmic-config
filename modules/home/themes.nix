@@ -72,6 +72,9 @@
   # ---------------------------------------------------------------------------
   # Las apps GTK4 modernas NO leen settings.ini: preguntan a dconf.
   # Sin esto, Nautilus y otras se quedan en claro aunque el resto sea oscuro.
+  # `dconf.enable` es OBLIGATORIO: sin esta línea Home Manager no escribe los
+  # ajustes y las apps GTK4 (Nautilus, File Roller...) siguen en CLARO.
+  dconf.enable = true;
   dconf.settings."org/gnome/desktop/interface" = {
     color-scheme = "prefer-dark";
     gtk-theme = "adw-gtk3-dark";

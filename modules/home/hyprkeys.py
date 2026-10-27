@@ -109,6 +109,11 @@ SECTIONS = [
         ("exec", 'grim -g "$(slurp)" - | satty --filename -', "Captura de una región"),
         ("exec", "grim - | satty --filename -", "Captura de toda la pantalla"),
     ]),
+    ("SISTEMA", [
+        ("exec", "wifi", "Menú de Wi-Fi"),
+        ("exec", "bluetooth", "Menú de Bluetooth"),
+        ("exec", "pwvucontrol", "Volumen y audio"),
+    ]),
     ("ESCRITORIO", [
         ("exec", "wallpaper next", "Siguiente fondo de pantalla"),
         ("exec", "wallpaper menu", "Elegir fondo de pantalla"),

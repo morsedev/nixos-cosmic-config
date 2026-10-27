@@ -257,6 +257,11 @@ in
         # Chuleta de atajos (ventana flotante)
         "$mod, slash, exec, ${lib.getExe hyprkeys-open}"
 
+        # Menús del sistema
+        "$mod, N, exec, wifi"
+        "$mod, B, exec, bluetooth"
+        "$mod, A, exec, pwvucontrol"
+
         # Fondos de pantalla
         "$mod, W, exec, ${lib.getExe wallpaper} next"
         "$mod SHIFT, W, exec, ${lib.getExe wallpaper} menu"
