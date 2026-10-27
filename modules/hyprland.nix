@@ -54,8 +54,17 @@
     extraPackages = [ pkgs.sddm-astronaut ];
   };
 
-  # Enlazar los temas de SDDM en el perfil del sistema (si no, no aparecen).
-  environment.pathsToLink = [ "/share/sddm/themes" ];
+  # Enlazar en el perfil del sistema las cosas que las apps buscan por ruta:
+  #  - /share/sddm/themes  -> temas de SDDM (si no, no aparecen)
+  #  - /share/glib-2.0/schemas -> esquemas de GNOME (modo oscuro en GTK4)
+  environment.pathsToLink = [
+    "/share/sddm/themes"
+    "/share/glib-2.0/schemas"
+  ];
+
+  # dconf a nivel de SISTEMA (además del de Home Manager). Es lo que permite
+  # que las apps GTK4 lean "prefer-dark" y se pinten en oscuro.
+  programs.dconf.enable = true;
   services.displayManager.defaultSession = "hyprland-uwsm";
 
   # ---------------------------------------------------------------------------
