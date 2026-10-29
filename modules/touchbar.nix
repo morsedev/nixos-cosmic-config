@@ -114,9 +114,10 @@ let
     version = "0.1.0";
     src = ../touchbar-pet;
     nativeBuildInputs = [ pkgs.pkg-config ];
-    buildInputs = [ pkgs.libdrm ];
+    buildInputs = [ pkgs.libdrm pkgs.libinput ];
     buildPhase = ''
-      $CC -O2 -Wall -o touchbar-pet pet.c $(pkg-config --cflags --libs libdrm) -lm
+      $CC -O2 -Wall -o touchbar-pet pet.c \
+        $(pkg-config --cflags --libs libdrm libinput) -lm
     '';
     installPhase = ''
       install -Dm755 touchbar-pet $out/bin/touchbar-petd
@@ -217,19 +218,23 @@ in
       src="$1"
       [ -f "$src" ] || { echo "no existe: $src"; exit 1; }
 
-      tmp="$(mktemp --suffix=.ppm)"
-      # 56 px de alto como máximo, 900 de ancho como máximo (deja sitio al reloj)
-      if command -v magick >/dev/null 2>&1; then
-        magick "$src" -background '#16161e' -alpha remove -alpha off \
-               -resize '900x56>' -depth 8 "ppm:$tmp"
+      tmpd="$(mktemp -d)"
+      n="$(magick identify "$src" 2>/dev/null | wc -l)"
+      if [ "$n" -gt 1 ]; then
+        # GIF animado: un fotograma por fichero (el daemon los anima al teclear)
+        magick "$src" -coalesce -background '#16161e' -alpha remove -alpha off \
+               -resize 'x56>' -depth 8 "$tmpd/f-%03d.ppm"
       else
-        convert "$src" -background '#16161e' -alpha remove -alpha off \
-                -resize '900x56>' -depth 8 "$tmp"
+        magick "$src" -background '#16161e' -alpha remove -alpha off \
+               -resize 'x56>' -depth 8 "$tmpd/f-000.ppm"
       fi
 
-      sudo mkdir -p /etc/touchbar-pet
-      sudo install -m 0644 "$tmp" /etc/touchbar-pet/sprite.ppm
-      rm -f "$tmp"
+      sudo rm -rf /etc/touchbar-pet/frames
+      sudo mkdir -p /etc/touchbar-pet/frames
+      sudo install -m 0644 "$tmpd"/*.ppm /etc/touchbar-pet/frames/
+      rm -rf "$tmpd"
+      sudo systemctl restart touchbar-pet 2>/dev/null || true
+      notify-send -a "Touch Bar" "Sprite actualizado" "$(basename "$src")" 2>/dev/null || true
       sudo systemctl restart touchbar-pet 2>/dev/null || true
       notify-send -a "Touch Bar" "Sprite actualizado" "$(basename "$src")" 2>/dev/null || true
     '')
