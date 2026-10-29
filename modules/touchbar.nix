@@ -244,9 +244,9 @@ in
       pid="$(pgrep -f touchbar-petd | head -1)"
       [ -n "$pid" ] || { echo "touchbar-pet no está en marcha"; exit 1; }
       if [ "''${1:-}" = "--storm" ]; then
-        kill -USR2 "$pid"
+        sudo kill -USR2 "$pid"
       else
-        kill -USR1 "$pid"
+        sudo kill -USR1 "$pid"
       fi
       sleep 1
       cat /tmp/touchbar-shot.ppm > "''${2:-/tmp/touchbar-shot-local.ppm}"
