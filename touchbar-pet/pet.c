@@ -527,12 +527,12 @@ static void open_touchbar(void) {
         int fd = open(path, O_RDONLY | O_NONBLOCK);
         if (fd < 0) continue;
         char name[256] = {0};
-        if (ioctl(fd, 0x80084506, name) >= 0 && strstr(name, "Touch Bar")) {
+        if (ioctl(fd, EVIOCGNAME(256), name) >= 0 && strstr(name, "Touch Bar")) {
             touchbar_fd = fd;
             struct input_absinfo ai;
-            if (ioctl(fd, 0x80044540 | (53 << 16), &ai) == 0 && ai.maximum > 0)
+            if (ioctl(fd, EVIOCGABS(ABS_MT_POSITION_X), &ai) == 0 && ai.maximum > 0)
                 tb_x_max = ai.maximum + 1;
-            if (ioctl(fd, 0x80044540 | (54 << 16), &ai) == 0 && ai.maximum > 0)
+            if (ioctl(fd, EVIOCGABS(ABS_MT_POSITION_Y), &ai) == 0 && ai.maximum > 0)
                 tb_y_max = ai.maximum + 1;
             fprintf(stderr, "táctil en %s (x 0..%d)\n", e->d_name, tb_x_max - 1);
             break;
@@ -581,7 +581,7 @@ static void open_inputs(void) {
         if (fd < 0) continue;
         /* el táctil de la Touch Bar se procesa aparte */
         char name[256] = {0};
-        if (ioctl(fd, 0x80084506, name) >= 0 && strstr(name, "Touch Bar")) {
+        if (ioctl(fd, EVIOCGNAME(256), name) >= 0 && strstr(name, "Touch Bar")) {
             close(fd);
             continue;
         }
