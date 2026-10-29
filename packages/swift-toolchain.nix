@@ -128,6 +128,9 @@ EOF
     ln -sfn ${pkgs.glibc.out}/lib                              $SYSROOT/lib/aarch64-unknown-linux-gnu
     ln -sfn ${pkgs.glibc.out}/lib                              $SYSROOT/usr/lib/aarch64-unknown-linux-gnu
     ln -sfn ${pkgs.gcc-unwrapped.out}/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version} $SYSROOT/usr/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version}
+    # El sysroot hace también de SDK: si se fija SDKROOT=<sysroot>, swift busca
+    # su runtime en <sysroot>/usr/lib/swift/linux (y la libc en usr/include).
+    ln -sfn $out/usr/lib/swift/linux                       $SYSROOT/usr/lib/swift/linux
 
     # clang.cfg: clang auto-carga un fichero de config junto al binario y
     # añade estos flags a CADA invocación.
