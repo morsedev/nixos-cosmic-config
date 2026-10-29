@@ -92,6 +92,17 @@
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
 
     # =========================================================================
+    # PAQUETES PROPIOS
+    # =========================================================================
+    packages.aarch64-linux = {
+      # Swift 6.4.1 (toolchain de swift.org) para aarch64-linux.
+      # Uso: nix build .#swift-toolchain
+      swift-toolchain = import ./packages/swift-toolchain.nix {
+        pkgs = nixpkgs.legacyPackages.aarch64-linux;
+      };
+    };
+
+    # =========================================================================
     # MÓDULOS (lo que hace que se pueda usar "como nixarchy")
     # =========================================================================
     # Estos son los módulos que OTRA configuración importa. Es lo que permite

@@ -24,21 +24,6 @@
 { inputs }:
 { config, pkgs, lib, ... }:
 
-let
-  # Wrapper de sourcekit-lsp: Neovim lo usa para Swift. Solo funciona si
-  # tienes instalado el toolchain oficial de swift.org (ver README). Si no
-  # está, el LSP falla sin romper nada.
-  sourcekit-lsp = pkgs.writeShellScriptBin "sourcekit-lsp" ''
-    for p in \
-      /usr/local/swift/usr/bin/sourcekit-lsp \
-      "$HOME/.swift/usr/bin/sourcekit-lsp" \
-      /opt/swift/usr/bin/sourcekit-lsp
-    do
-      [ -x "$p" ] && exec "$p" "$@"
-    done
-    exit 1
-  '';
-in
 {
   # ---------------------------------------------------------------------------
   # MÓDULO DE NIXVIM
@@ -375,13 +360,12 @@ in
     # =========================================================================
     extraConfigLua = ''
       -- ---------------------------------------------------------------------
-      -- Swift LSP (sourcekit-lsp): usa el toolchain de swift.org si está
-      -- instalado (ver README). El wrapper devuelve error si no existe, así
-      -- que abrir .swift sin toolchain no rompe nada.
-      -- Framework moderno (nvim 0.11+); lspconfig está deprecado.
+      -- Swift LSP (sourcekit-lsp): lo provee el paquete swift-toolchain del
+      -- sistema (modules/swift.nix). Si no está instalado, el LSP falla al
+      -- abrir .swift sin romper nada.
       -- ---------------------------------------------------------------------
       vim.lsp.config("sourcekit-lsp", {
-        cmd = { "${sourcekit-lsp}/bin/sourcekit-lsp" },
+        cmd = { "sourcekit-lsp" },
         filetypes = { "swift" },
       })
       vim.lsp.enable("sourcekit-lsp")

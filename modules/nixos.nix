@@ -54,6 +54,9 @@
     # Herramientas de desarrollo (Rust, Flutter/Dart, Python, Docker...).
     ./development.nix
 
+    # Swift (toolchain oficial de swift.org para aarch64-linux).
+    ./swift.nix
+
     # Configuración del tema Tokyo Night.
     ./stylix.nix
   ];
