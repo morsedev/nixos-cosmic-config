@@ -75,7 +75,8 @@ El gato real es de un GIF de gifdb.com (uso personal, marca de agua recortada).
 Super+Enter terminal · Super+D walker · Super+E nautilus · Super+Q cerrar
 Super+F fullscreen (respeta barra) · Super+Shift+F fullscreen real · Super+V flotar
 (con Super+F activo, cambiar de ventana con Super+arrows hace que el maximizado
-"siga" al foco: `misc:on_focus_under_fullscreen = 1` en modules/home/hyprland.nix) · Super+M salir · Super+L bloquear
+"siga" al foco: necesita `misc:on_focus_under_fullscreen = 1` Y
+`binds:movefocus_cycles_fullscreen = true` en modules/home/hyprland.nix) · Super+M salir · Super+L bloquear
 Super+S / Shift+S captura · Super+C portapapeles · Super+/ chuleta
 Super+W / Shift+W wallpaper · Super+N wifi · Super+B bluetooth · Super+A audio
 Super+I ajustes · Super+Shift+T touchbar · Super+1..9 workspaces

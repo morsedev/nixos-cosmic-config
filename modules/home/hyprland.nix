@@ -198,6 +198,15 @@ in
       };
       master.new_status = "master";
 
+      # --- Comportamiento de los binds (focus con ventana maximizada) ---
+      # Sin esto, `movefocus` (Super+arrows) no mueve el foco cuando la ventana
+      # activa está maximizada/fullscreen: busca direccionalmente y no hay nada.
+      # Con `true`, mientras esté maximizada el foco recorre las ventanas y, junto
+      # a `misc:on_focus_under_fullscreen = 1`, la maximizada "sigue" al foco.
+      binds = {
+        movefocus_cycles_fullscreen = true;
+      };
+
       misc = {
         force_default_wallpaper = 0;
         disable_hyprland_logo = true;
