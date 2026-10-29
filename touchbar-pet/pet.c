@@ -202,7 +202,7 @@ static void draw_time(int cx, int cy, int h, int blink) {
     digit7(x, y, w, h, th, tm.tm_hour / 10, BLUE); x += w + gap;
     digit7(x, y, w, h, th, tm.tm_hour % 10, BLUE); x += w + gap;
     if (blink) {
-        int r = th / 2 + 1;
+        int r = th + 1;
         disc(x + colon / 2, y + h / 3, r, BLUE);
         disc(x + colon / 2, y + 2 * h / 3, r, BLUE);
     }
@@ -251,35 +251,37 @@ static void overlay_flash(int f) {
         canvas[i] = mix(canvas[i], 0xffffff, f);
 }
 
-/* Tormenta: un rayo gigante que atraviesa TODA la barra, con ramas y flash. */
-static void draw_storm(int flash) {
-    int n = 16;
-    int xs[17], ys[17];
-    xs[0] = 120; ys[0] = 10;
+/* Rayo vertical con núcleo blanco y halo amarillo */
+static void bolt(int cx, int top, int bot, uint32_t halo) {
+    int n = 5;
+    int xs[6], ys[6];
+    xs[0] = cx; ys[0] = top;
     for (int i = 1; i <= n; i++) {
-        xs[i] = 120 + i * ((W - 240) / n);
-        int step = (i % 2) ? 9 : -7;
-        ys[i] = ys[i - 1] + step;
-        if (ys[i] < 6) ys[i] = 6;
-        if (ys[i] > H - 6) ys[i] = H - 6;
+        xs[i] = cx + ((i % 2) ? 7 : -7) + (i == n ? 0 : 0);
+        ys[i] = top + i * (bot - top) / n;
     }
-    /* ramas desde el rayo principal */
-    for (int i = 2; i < n; i += 2) {
-        int bx = xs[i] + 18, by = ys[i] - 14;
-        line(xs[i], ys[i], bx, by, YELLOW);
-        line(bx, by, bx + 8, by + 4, YELLOW);
-        line(xs[i], ys[i], xs[i] - 14, ys[i] + 16, YELLOW);
-    }
-    /* resplandor (trazo más ancho y tenue) + trazo principal */
     for (int i = 0; i < n; i++) {
-        line(xs[i], ys[i], xs[i + 1], ys[i + 1], 0x9a6b00);
-        line(xs[i], ys[i] + 1, xs[i + 1], ys[i + 1] + 1, 0x9a6b00);
-        line(xs[i], ys[i], xs[i + 1], ys[i + 1], YELLOW);
+        line(xs[i], ys[i], xs[i + 1], ys[i + 1], halo);      /* halo */
+        line(xs[i], ys[i] + 1, xs[i + 1], ys[i + 1] + 1, halo);
+        line(xs[i] - 1, ys[i], xs[i + 1] - 1, ys[i + 1], halo);
+        line(xs[i], ys[i], xs[i + 1], ys[i + 1], 0xffffff);  /* núcleo */
     }
+    /* ramas */
+    line(cx + 4, ys[2], cx + 22, ys[2] - 14, 0xffffff);
+    line(cx - 3, ys[3], cx - 20, ys[3] + 12, 0xffffff);
+    line(cx + 6, ys[4], cx + 18, ys[4] - 10, 0xffffff);
+}
+
+/* Tormenta: 3 rayos verticales repartidos + flash que ilumina toda la barra */
+static void draw_storm(int flash) {
+    bolt(320, 4, H - 4, 0x9a6b00);
+    bolt(1020, 4, H - 4, 0x9a6b00);
+    bolt(1720, 4, H - 4, 0x9a6b00);
     if (flash)
         overlay_flash(flash);
 }
 
+/* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
 /* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
 static void draw_bolt(int x, int seed) {
     int pts[][2] = {
@@ -378,22 +380,22 @@ typedef struct { int x, y, w, h; int act; const char *label; int icon; } Button;
 
 /* Modo gato: botones GRANDES a la derecha, justo después de la batería. */
 static Button cat_buttons[] = {
-    { W - 196, 12, 92, 36, ACT_MEDIA, NULL, 1 },   /* ▶ */
-    { W - 98, 12, 92, 36, ACT_FKEYS, "FN", 0 },
+    { W - 198, 8, 94, 44, ACT_MEDIA, NULL, 1 },
+    { W - 98, 8, 94, 44, ACT_FKEYS, "FN", 0 },
     { 0, 0, 0, 0, 0, NULL, 0 }
 };
 
 static Button media_buttons[] = {
-    { 48, 12, 50, 36, ACT_BRIGHT_DOWN, NULL, 4 },
-    { 102, 12, 50, 36, ACT_BRIGHT_UP, NULL, 4 },
-    { 156, 12, 50, 36, ACT_VOL_DOWN, NULL, 5 },
-    { 210, 12, 50, 36, ACT_VOL_UP, NULL, 5 },
-    { 264, 12, 50, 36, ACT_MUTE, NULL, 6 },
-    { 318, 12, 54, 36, ACT_PREV, NULL, 2 },
-    { 376, 12, 54, 36, ACT_PLAY, NULL, 1 },
-    { 434, 12, 54, 36, ACT_NEXT, NULL, 3 },
+    { 48, 8, 50, 44, ACT_BRIGHT_DOWN, NULL, 4 },
+    { 102, 8, 50, 44, ACT_BRIGHT_UP, NULL, 4 },
+    { 156, 8, 50, 44, ACT_VOL_DOWN, NULL, 5 },
+    { 210, 8, 50, 44, ACT_VOL_UP, NULL, 5 },
+    { 264, 8, 50, 44, ACT_MUTE, NULL, 6 },
+    { 318, 8, 54, 44, ACT_PREV, NULL, 2 },
+    { 376, 8, 54, 44, ACT_PLAY, NULL, 1 },
+    { 434, 8, 54, 44, ACT_NEXT, NULL, 3 },
     /* volver al gato: a la derecha del todo */
-    { W - 196, 12, 92, 36, ACT_CAT, NULL, 7 },
+    { W - 198, 8, 94, 44, ACT_CAT, NULL, 7 },
     { 0, 0, 0, 0, 0, NULL, 0 }
 };
 
@@ -417,13 +419,13 @@ static void fkeys_init(void) {
         snprintf(lbl, sizeof(lbl), "F%d", i + 1);
         fkey_buttons[i].x = 40 + i * bw;
         fkey_buttons[i].y = 8;
-        fkey_buttons[i].w = bw - 6;
+        fkey_buttons[i].w = bw - 8;
         fkey_buttons[i].h = 44;
         fkey_buttons[i].act = ACT_FKEY_1 + i;
         fkey_buttons[i].label = strdup(lbl);
         fkey_buttons[i].icon = 0;
     }
-    fkey_buttons[12] = (Button){ W - 196, 12, 92, 36, ACT_CAT, NULL, 7 };
+    fkey_buttons[12] = (Button){ W - 98, 8, 94, 44, ACT_CAT, NULL, 7 };
 }
 
 static void emit_key(int code);
@@ -539,11 +541,13 @@ static void draw_icon(int icon, int cx, int cy, uint32_t c) {
 
 static void draw_buttons(Button *btns) {
     for (Button *b = btns; b->w; b++) {
-        rounded(b->x, b->y, b->w, b->h, 8, SURFACE);
-        /* borde sutil */
+        rounded(b->x, b->y, b->w, b->h, 9, 0x2a2f45);
+        /* borde azul */
         for (int i = 0; i < b->w; i++) {
-            px(b->x + i, b->y, BORDER);
-            px(b->x + i, b->y + b->h - 1, BORDER);
+            px(b->x + i, b->y, BLUE);
+            px(b->x + i, b->y + b->h - 1, BLUE);
+            px(b->x + 1, b->y + i, BLUE);
+            px(b->x + b->w - 1, b->y + i, BLUE);
         }
         int cx = b->x + b->w / 2;
         int cy = b->y + b->h / 2;
@@ -859,9 +863,10 @@ static void draw_scene(int frame, int blink, int batt, long el, int typing) {
         /* tormenta: rayo que atraviesa toda la barra + flash al empezar */
         if (typing) {
             int flash = 0;
-            if (el < 90) flash = 65;
-            else if (el < 170) flash = 40;
-            else if (el < 240) flash = 22;
+            if (el < 100) flash = 88;
+            else if (el < 180) flash = 55;
+            else if (el < 260) flash = 28;
+            else if (el < 340) flash = 12;
             draw_storm(flash);
         }
 
