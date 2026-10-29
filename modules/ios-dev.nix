@@ -74,7 +74,7 @@ in
     python3
     # Deps que pide install-toolchain.sh / el build de xtool:
     zip unzip                          # empaquetado .ipa
-    poppler_utils                      # pdftocairo (iconos/PDF)
+    poppler-utils                     # pdftocairo (iconos/PDF)
     libheif                            # heif-convert
     libimobiledevice                   # comunicación con el iPhone
     openssl                            # headers openssl para xtool build
