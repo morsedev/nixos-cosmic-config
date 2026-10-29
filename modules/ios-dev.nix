@@ -83,6 +83,7 @@ in
     python3
     # Deps que pide install-toolchain.sh / el build de xtool:
     zip unzip                          # empaquetado .ipa
+    xz                                 # liblzma (módulo C de unxip)
     poppler-utils                     # pdftocairo (iconos/PDF)
     libheif                            # heif-convert
     libimobiledevice                   # comunicación con el iPhone
@@ -100,14 +101,17 @@ in
     C_INCLUDE_PATH = lib.concatStringsSep ":" [
       "${pkgs.openssl.dev}/include"
       "${pkgs.libimobiledevice.dev}/include"
+      "${pkgs.xz.dev}/include"                  # lzma.h (módulo C de unxip)
+      "${pkgs.zlib.dev}/include"
       "${pkgs.glibc.dev}/include"
       "${pkgs.gcc-unwrapped.out}/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version}/include"
-      "${pkgs.zlib.dev}/include"
       "${pkgs.libxml2.dev}/include"
     ];
     CPLUS_INCLUDE_PATH = lib.concatStringsSep ":" [
       "${pkgs.openssl.dev}/include"
       "${pkgs.libimobiledevice.dev}/include"
+      "${pkgs.xz.dev}/include"
+      "${pkgs.zlib.dev}/include"
       "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}"
       "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/aarch64-unknown-linux-gnu"
       "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/backward"
