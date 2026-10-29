@@ -48,6 +48,9 @@
     # Layouts de la Touch Bar + comando `touchbar`.
     ./touchbar.nix
 
+    # Mantenimiento: punto base + máximo 7 generaciones + limpieza del store.
+    ./maintenance.nix
+
     # Herramientas de desarrollo (Rust, Flutter/Dart, Python, Docker...).
     ./development.nix
 
