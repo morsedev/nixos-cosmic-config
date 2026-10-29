@@ -22,7 +22,8 @@ let
   pinBase = pkgs.writeShellScript "nix-pin-base" ''
     set -euo pipefail
     root=/nix/var/nix/gcroots/system-base
-    link="$(readlink ${profile})"              # /nix/store/...-nixos-system-...
+    # readlink -f resuelve TODOS los enlaces hasta la ruta /nix/store/...
+    link="$(readlink -f ${profile})"
     mkdir -p "$(dirname "$root")"
     ln -sfn "$link" "$root"
     echo "punto base -> $link"
