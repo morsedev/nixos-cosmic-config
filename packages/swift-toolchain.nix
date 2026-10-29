@@ -108,11 +108,20 @@ EOF
     # clang busca `ld` en PATH.
     ln -sf ld.lld $out/usr/bin/ld
 
+    # Sysroot sintético: clang necesita encontrar libc/include del target para
+    # el ClangImporter (módulos C de XCTest/Dispatch → SwiftGlibc).
+    SYSROOT=$out/usr/lib/swift/linux/nix-sysroot
+    mkdir -p $SYSROOT/usr/include $SYSROOT/usr/lib $SYSROOT/usr/lib/aarch64-unknown-linux-gnu $SYSROOT/lib/aarch64-unknown-linux-gnu $SYSROOT/usr/lib/gcc/aarch64-unknown-linux-gnu
+    ln -sfn ${pkgs.glibc.dev}/include                          $SYSROOT/usr/include
+    ln -sfn ${pkgs.glibc.out}/lib                              $SYSROOT/lib/aarch64-unknown-linux-gnu
+    ln -sfn ${pkgs.glibc.out}/lib                              $SYSROOT/usr/lib/aarch64-unknown-linux-gnu
+    ln -sfn ${pkgs.gcc-unwrapped.out}/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version} $SYSROOT/usr/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version}
+
     # clang.cfg: clang auto-carga un fichero de config junto al binario y
-    # añade estos -isystem a CADA invocación (lo usa el ClangImporter de
-    # swift-frontend para módulos C como CDispatch de XCTest → sys/param.h).
+    # añade estos flags a CADA invocación.
     cat > $out/usr/bin/clang.cfg <<EOF
 --gcc-toolchain=${pkgs.gcc-unwrapped.out}
+--sysroot=$SYSROOT
 -isystem ${pkgs.glibc.dev}/include
 -isystem ${gccLibDir}/include
 -isystem ${pkgs.zlib.dev}/include
