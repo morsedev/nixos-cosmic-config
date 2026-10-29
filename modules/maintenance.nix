@@ -16,14 +16,16 @@
 let
   profile = "/nix/var/nix/profiles/system";
 
-  # Script que marca la generación actual como "punto base" (no borrable).
+  # Script que fija la generación ACTUAL como "punto base": crea una raíz de
+  # recogida de basura (GC root) apuntando al sistema, así el store NUNCA la
+  # borra, aunque se eliminen generaciones viejas.
   pinBase = pkgs.writeShellScript "nix-pin-base" ''
     set -euo pipefail
-    gen="$(readlink ${profile} | sed -E 's/.*-([0-9]+)-link.*/\1/')"
-    if [ -n "$gen" ]; then
-      ${pkgs.nix}/bin/nix-env --profile ${profile} --keep-generation "$gen"
-      echo "generación $gen marcada como punto base"
-    fi
+    root=/nix/var/nix/gcroots/system-base
+    link="$(readlink ${profile})"              # /nix/store/...-nixos-system-...
+    mkdir -p "$(dirname "$root")"
+    ln -sfn "$link" "$root"
+    echo "punto base -> $link"
   '';
 
   # Script que borra las generaciones más viejas dejando las 7 últimas
