@@ -19,6 +19,11 @@
 { config, pkgs, lib, ... }:
 
 {
+  # Permite instalar paquetes con licencia "no libre" (nrf-command-line-tools,
+  # navegadores, etc.). Es lo mismo que hace configuration.nix, pero a nivel de
+  # módulo para que funcione en cualquier máquina que consuma nixarchy.
+  nixpkgs.config.allowUnfree = true;
+
   # ---------------------------------------------------------------------------
   # PAQUETES
   # ---------------------------------------------------------------------------
