@@ -120,9 +120,9 @@ EOF
     # Sysroot sintético: clang necesita encontrar libc/include del target para
     # el ClangImporter (módulos C de XCTest/Dispatch → SwiftGlibc).
     SYSROOT=$out/usr/lib/swift/linux/nix-sysroot
-    # Cuidado: NO crear los destinos (usr/include, include) antes de `ln -sfn`,
-    # o el symlink se crea DENTRO del dir y la libc no se encuentra.
-    mkdir -p $SYSROOT/usr/lib/aarch64-unknown-linux-gnu $SYSROOT/lib/aarch64-unknown-linux-gnu $SYSROOT/usr/lib/gcc/aarch64-unknown-linux-gnu
+    # Cuidado: NO crear los destinos antes de `ln -sfn`, o el symlink se crea
+    # DENTRO del dir y la libc no se encuentra.
+    mkdir -p $SYSROOT/lib $SYSROOT/usr/lib/gcc/aarch64-unknown-linux-gnu
     ln -sfn ${pkgs.glibc.dev}/include                          $SYSROOT/usr/include
     ln -sfn ${pkgs.glibc.dev}/include                          $SYSROOT/include
     ln -sfn ${pkgs.glibc.out}/lib                              $SYSROOT/lib/aarch64-unknown-linux-gnu
@@ -130,6 +130,7 @@ EOF
     ln -sfn ${pkgs.gcc-unwrapped.out}/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version} $SYSROOT/usr/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version}
     # El sysroot hace también de SDK: si se fija SDKROOT=<sysroot>, swift busca
     # su runtime en <sysroot>/usr/lib/swift/linux (y la libc en usr/include).
+    mkdir -p $SYSROOT/usr/lib/swift
     ln -sfn $out/usr/lib/swift/linux                       $SYSROOT/usr/lib/swift/linux
 
     # clang.cfg: clang auto-carga un fichero de config junto al binario y
