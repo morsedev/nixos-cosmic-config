@@ -45,6 +45,9 @@ Asahi y `uboot-asahi` dejan de compilar (dtc 1.8.1 rompe con
   dfu-util, picocom, platformio, nrf-command-line-tools, arduino-cli + udev
   rules + grupos dialout/plugdev), PCB (kicad, librepcb, gerbv), IA agentica
   CLI (aichat, codex, goose-cli, gemini-cli), nixd/alejandra, cargo-nextest.
+  NOTA: el módulo development.nix acepta unfree + `segger-jlink-qt4` y la
+  licencia SEGGER (lo pide openocd para J-Link). El grupo `plugdev` se crea
+  en el módulo.
 - **Ghostty** (paleta Tokyo Night), **Yazi**, **eza/bat/fd/rg**.
 - **Wallpapers**: 6 fondos (4 recortados + 2 generados cyberpunk/anime:
   neon-grid y sakura-cyberpunk).
