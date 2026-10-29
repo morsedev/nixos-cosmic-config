@@ -272,13 +272,11 @@ static void bolt(int cx, int top, int bot, uint32_t halo) {
     line(cx + 6, ys[4], cx + 18, ys[4] - 10, 0xffffff);
 }
 
-/* Tormenta: 3 rayos verticales repartidos + flash que ilumina toda la barra */
-static void draw_storm(int flash) {
-    bolt(320, 4, H - 4, 0x9a6b00);
-    bolt(1020, 4, H - 4, 0x9a6b00);
-    bolt(1720, 4, H - 4, 0x9a6b00);
-    if (flash)
-        overlay_flash(flash);
+/* Tormenta: 3 rayos verticales repartidos */
+static void draw_storm(void) {
+    bolt(320, 4, H - 4, 0xff9e00);
+    bolt(1020, 4, H - 4, 0xff9e00);
+    bolt(1720, 4, H - 4, 0xff9e00);
 }
 
 /* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
@@ -490,12 +488,12 @@ static void uinput_init(void) {
 /* ------------------------------------------------------------------------- */
 /*  Dibujado de iconos y botones                                             */
 /* ------------------------------------------------------------------------- */
-static void icon_play(int cx, int cy, uint32_t c) { tri_right(cx - 5, cy, 10, c); }
+static void icon_play(int cx, int cy, uint32_t c) { tri_left(cx + 5, cy, 10, c); }
 static void icon_prev(int cx, int cy, uint32_t c) {
-    tri_left(cx + 5, cy, 10, c); tri_left(cx + 13, cy, 10, c);
+    tri_right(cx - 5, cy, 10, c); tri_right(cx - 13, cy, 10, c);
 }
 static void icon_next(int cx, int cy, uint32_t c) {
-    tri_right(cx - 5, cy, 10, c); tri_right(cx + 3, cy, 10, c);
+    tri_left(cx + 5, cy, 10, c); tri_left(cx + 13, cy, 10, c);
 }
 static void icon_sun(int cx, int cy, int plus, uint32_t c) {
     disc(cx - (plus ? 4 : 4), cy, 7, c);
@@ -516,8 +514,8 @@ static void icon_speaker(int cx, int cy, int muted, uint32_t c) {
     }
 }
 static void icon_back(int cx, int cy, uint32_t c) {
-    tri_left(cx + 6, cy, 9, c);
-    fill(cx - 6, cy - 6, 9, 12, c);
+    tri_right(cx - 6, cy, 9, c);
+    fill(cx - 4, cy - 6, 9, 12, c);
 }
 static void icon_cat(int cx, int cy, uint32_t c) {
     disc(cx, cy, 8, c);
@@ -862,12 +860,14 @@ static void draw_scene(int frame, int blink, int batt, long el, int typing) {
 
         /* tormenta: rayo que atraviesa toda la barra + flash al empezar */
         if (typing) {
+            /* el flash ilumina la barra pero se dibuja ANTES que los rayos,
+               así estos quedan por encima y se ven */
             int flash = 0;
-            if (el < 100) flash = 88;
-            else if (el < 180) flash = 55;
-            else if (el < 260) flash = 28;
-            else if (el < 340) flash = 12;
-            draw_storm(flash);
+            if (el < 100) flash = 42;
+            else if (el < 180) flash = 26;
+            else if (el < 260) flash = 12;
+            if (flash) overlay_flash(flash);
+            draw_storm();
         }
 
         draw_time(1010, 30, 30, blink);
