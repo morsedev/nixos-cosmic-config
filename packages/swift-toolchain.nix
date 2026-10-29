@@ -100,13 +100,17 @@ pkgs.stdenv.mkDerivation {
     NIXLD="$ld"
     COMPAT="$out/usr/lib/compat"
     CRT="$out/usr/lib/clang/21/lib/linux"
+    SYSROOT="$out/usr/lib/swift/linux/nix-sysroot"
     mv $out/usr/bin/swiftc $out/usr/bin/swiftc.orig
     cat > $out/usr/bin/swiftc <<EOF
 #!/bin/sh
 export LIBRARY_PATH="${pkgs.icu.out}/lib:${pkgs.curl.out}/lib:${pkgs.libxml2.out}/lib:${pkgs.zlib}/lib:${pkgs.sqlite.out}/lib:${pkgs.libedit.out}/lib:${pkgs.ncurses.out}/lib:${gccLibDir}:${pkgs.gcc-unwrapped.lib}/lib:${pkgs.python3}/lib:${pkgs.z3.out}/lib:${pkgs.libbsd.out}/lib:${pkgs.glibc.out}/lib:${pkgs.utillinux.lib}/lib:$COMPAT:$CRT"
 export C_INCLUDE_PATH="${pkgs.glibc.dev}/include:${gccLibDir}/include:${pkgs.zlib.dev}/include:${pkgs.libxml2.dev}/include"
 export CPLUS_INCLUDE_PATH="${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}:${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/aarch64-unknown-linux-gnu:${pkgs.glibc.dev}/include"
-exec "$out/usr/bin/swiftc.orig" -Xlinker --dynamic-linker="$NIXLD" "\$@"
+# -Xcc --sysroot=$SYSROOT: el ClangImporter (detección de libc) solo lee los
+# args -Xcc/ExtraArgs y el SearchPathOptions, NO clang.cfg. Con el sysroot en
+# los args encuentra la libc y puede construir SwiftGlibc/CDispatch (XCTest).
+exec "$out/usr/bin/swiftc.orig" -Xcc --sysroot="$SYSROOT" -Xlinker --dynamic-linker="$NIXLD" "\$@"
 EOF
     chmod +x $out/usr/bin/swiftc
 
