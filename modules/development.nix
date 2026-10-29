@@ -144,6 +144,10 @@
   #   plugdev  → reglas udev de flasheo (PlatformIO, Arduino, nRF, ST-Link)
   users.users.macnix.extraGroups = [ "docker" "dialout" "plugdev" ];
 
+  # El grupo `plugdev` no existe en NixOS por defecto: lo creamos para que las
+  # reglas udev de flasheo (GROUP="plugdev") tengan a quién apuntar.
+  users.groups.plugdev = { };
+
   # ---------------------------------------------------------------------------
   # UDEV para desarrollo embedded
   # ---------------------------------------------------------------------------
