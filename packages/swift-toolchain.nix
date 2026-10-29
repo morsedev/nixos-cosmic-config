@@ -112,6 +112,7 @@ EOF
     # añade estos -isystem a CADA invocación (lo usa el ClangImporter de
     # swift-frontend para módulos C como CDispatch de XCTest → sys/param.h).
     cat > $out/usr/bin/clang.cfg <<EOF
+--gcc-toolchain=${pkgs.gcc-unwrapped.out}
 -isystem ${pkgs.glibc.dev}/include
 -isystem ${gccLibDir}/include
 -isystem ${pkgs.zlib.dev}/include
