@@ -26,11 +26,8 @@ in
   # sys/param.h). Hay que darle los headers de glibc/gcc en el entorno, no solo
   # en el wrapper de swiftc.
   environment.sessionVariables = {
-    # SDKROOT apunta al "sysroot/sdk" sintético del paquete: le da a swift (y al
-    # ClangImporter) la libc + headers + runtime. Sin esto `import Glibc`,
-    # `swift test` (XCTest) y módulos C fallan con "missing required module
-    # SwiftGlibc" (el driver lee SDKROOT en Driver.swift).
-    SDKROOT = "${swift}/usr/lib/swift/linux/nix-sysroot";
+    # El sysroot se inyecta vía -Xcc en los wrappers del paquete (ver
+    # swift-toolchain.nix); aquí solo los includes de C/C++ extra.
     C_INCLUDE_PATH = lib.concatStringsSep ":" [
       "${pkgs.glibc.dev}/include"
       "${gccLibDir}/include"

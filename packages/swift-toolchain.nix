@@ -148,8 +148,26 @@ EOF
     # de usr/bin. El layout usr/ se mantiene para que swiftpm detecte bien la
     # raíz del toolchain (el driver resuelve /proc/self/exe hasta swift-driver
     # dentro de usr/bin, así que la raíz sigue saliendo correcta).
+    #
+    # swift / swift-build / swift-test / swift-run / swift-package van como
+    # WRAPPERS que inyectan `-Xcc --sysroot=$SYSROOT`: es lo que hace que el
+    # ClangImporter encuentre la libc y pueda construir SwiftGlibc/CDispatch
+    # (necesario para `swift test`, módulos C y proyectos como xtool). swiftpm
+    # lanza el frontend directamente y no pasa clang.cfg, así que el sysroot
+    # tiene que ir en la línea de comandos.
     mkdir -p $out/bin
-    for t in swift swiftc swift-build swift-package swift-run swift-test swift-format sourcekit-lsp lldb ld; do
+    for t in swift swift-build swift-test swift-run swift-package; do
+      cat > $out/bin/$t <<EOF
+#!/bin/sh
+case " \$1 " in
+  " build "|" test "|" run "|" package ")
+    exec "$out/usr/bin/$t" "\$@" -Xcc --sysroot="$SYSROOT" ;;
+  *) exec "$out/usr/bin/$t" "\$@" ;;
+esac
+EOF
+      chmod +x $out/bin/$t
+    done
+    for t in swiftc swift-format sourcekit-lsp lldb ld; do
       [ -e "$out/usr/bin/$t" ] && ln -sf ../usr/bin/$t $out/bin/$t
     done
 
