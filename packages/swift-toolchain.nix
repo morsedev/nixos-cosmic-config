@@ -140,7 +140,10 @@ EOF
     cat > $out/usr/bin/clang.cfg <<EOF
 --gcc-toolchain=${pkgs.gcc-unwrapped.out}
 --sysroot=$SYSROOT
--isystem ${pkgs.glibc.dev}/include
+# OJO: NO poner -isystem de glibc aquí. El sysroot ya aporta usr/include como
+# -internal-externc-isystem DESPUÉS de los dirs de C++ (necesario para que el
+# #include_next <stdlib.h> de libstdc++ funcione); si se añade antes, clang
+# deduplica usr/include y el include_next no encuentra stdlib.h.
 -isystem ${gccLibDir}/include
 -isystem ${pkgs.zlib.dev}/include
 -isystem ${pkgs.libxml2.dev}/include
