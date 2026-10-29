@@ -46,6 +46,7 @@ let
     dontConfigure = true;
     dontBuild = true;
     dontFixup = true;
+    nativeBuildInputs = [ pkgs.perl ];
 
     patchPhase = ''
       # Con `set -e` + `set -o pipefail`, la comprobación de lldb
