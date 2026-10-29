@@ -57,6 +57,9 @@
     # Swift (toolchain oficial de swift.org para aarch64-linux).
     ./swift.nix
 
+    # Desarrollo iOS desde Linux (xtool / omarchy-apple-dev).
+    ./ios-dev.nix
+
     # Configuración del tema Tokyo Night.
     ./stylix.nix
   ];
