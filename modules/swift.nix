@@ -14,8 +14,28 @@
 
 { config, pkgs, lib, ... }:
 
+let
+  swift = import ../packages/swift-toolchain.nix { inherit pkgs; };
+  gccLibDir = "${pkgs.gcc-unwrapped.out}/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version}";
+in
 {
-  environment.systemPackages = [
-    (import ../packages/swift-toolchain.nix { inherit pkgs; })
-  ];
+  environment.systemPackages = [ swift ];
+
+  # El frontend de Swift (swift-frontend) lo lanza swift build directamente y
+  # usa el ClangImporter para módulos C (XCTest → CDispatch necesita
+  # sys/param.h). Hay que darle los headers de glibc/gcc en el entorno, no solo
+  # en el wrapper de swiftc.
+  environment.sessionVariables = {
+    C_INCLUDE_PATH = lib.concatStringsSep ":" [
+      "${pkgs.glibc.dev}/include"
+      "${gccLibDir}/include"
+      "${pkgs.zlib.dev}/include"
+      "${pkgs.libxml2.dev}/include"
+    ];
+    CPLUS_INCLUDE_PATH = lib.concatStringsSep ":" [
+      "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}"
+      "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/aarch64-unknown-linux-gnu"
+      "${pkgs.glibc.dev}/include"
+    ];
+  };
 }
