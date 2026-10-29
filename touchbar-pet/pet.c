@@ -258,35 +258,38 @@ static void bolt(int cx) {
     for (int i = 1; i <= 6; i++) ys[i] = 4 + i * (H - 8) / 6;
     int prev = cx;
     for (int i = 1; i <= 6; i++) {
-        int x = cx + ((i % 2) ? 6 : -6);
+        int x = cx + ((i % 2) ? 8 : -8);
+        line(prev - 2, ys[i - 1], x - 2, ys[i], 0x7a5200);
+        line(prev + 2, ys[i - 1], x + 2, ys[i], 0x7a5200);
         line(prev - 1, ys[i - 1], x - 1, ys[i], 0xff9e00);
-        line(prev, ys[i - 1], x, ys[i], 0xff9e00);
         line(prev + 1, ys[i - 1], x + 1, ys[i], 0xff9e00);
         line(prev, ys[i - 1], x, ys[i], 0xffffff);
         prev = x;
     }
 }
 
-/* Resplandor radial blanco alrededor de un punto (el "flash") */
+/* Resplandor radial con caída cuadrática: núcleo blanco que se disuelve */
 static void overlay_bloom(int cx, int radius, int strength) {
+    int cy = H / 2;
     for (int y = 0; y < H; y++)
         for (int x = 0; x < W; x++) {
-            int d = abs(x - cx) + abs(y - H / 2);
-            if (d < radius) {
-                int f = strength * (radius - d) / radius;
-                canvas[y * W + x] = mix(canvas[y * W + x], 0xffffff, f);
+            int dx = x - cx, dy = y - cy;
+            int d2 = dx * dx + dy * dy;
+            if (d2 < radius * radius) {
+                int f = strength - (strength * d2) / (radius * radius);
+                if (f > 0) canvas[y * W + x] = mix(canvas[y * W + x], 0xffffff, f);
             }
         }
 }
 
 /* Tormenta: 3 rayos repartidos evitando reloj, copo y botones */
 static void draw_storm(void) {
-    overlay_bloom(250, 380, 58);
-    overlay_bloom(1150, 380, 58);
-    overlay_bloom(1520, 380, 58);
-    bolt(250);
-    bolt(1150);
-    bolt(1520);
+    overlay_bloom(320, 140, 72);
+    overlay_bloom(1150, 140, 72);
+    overlay_bloom(1560, 140, 72);
+    bolt(320);
+    bolt(1145);
+    bolt(1565);
 }
 
 /* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
