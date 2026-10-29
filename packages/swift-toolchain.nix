@@ -55,6 +55,9 @@ pkgs.stdenv.mkDerivation {
   };
 
   nativeBuildInputs = [ pkgs.patchelf ];
+  # Deps extra cuyos headers se referencian en clang.cfg (módulos C del
+  # ClangImporter: lzma, openssl, zlib, libxml2, libimobiledevice).
+  buildInputs = [ pkgs.xz.dev pkgs.openssl.dev pkgs.zlib.dev pkgs.libxml2.dev pkgs.libimobiledevice.dev ];
 
   dontConfigure = true;
   dontBuild = true;
@@ -144,9 +147,14 @@ EOF
 # -internal-externc-isystem DESPUÉS de los dirs de C++ (necesario para que el
 # #include_next <stdlib.h> de libstdc++ funcione); si se añade antes, clang
 # deduplica usr/include y el include_next no encuentra stdlib.h.
+# Estos -isystem SÍ los usa el ClangImporter al compilar módulos C (lzma,
+# openssl, zlib, libxml2, libimobiledevice) — p. ej. para el build de xtool.
 -isystem ${gccLibDir}/include
+-isystem ${pkgs.xz.dev}/include
+-isystem ${pkgs.openssl.dev}/include
 -isystem ${pkgs.zlib.dev}/include
 -isystem ${pkgs.libxml2.dev}/include
+-isystem ${pkgs.libimobiledevice.dev}/include
 EOF
 
     # Exponer en $out/bin (lo que systemPackages mete en el PATH) los binarios
