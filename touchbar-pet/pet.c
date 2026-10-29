@@ -258,12 +258,13 @@ static void bolt(int cx) {
     for (int i = 1; i <= 6; i++) ys[i] = 4 + i * (H - 8) / 6;
     int prev = cx;
     for (int i = 1; i <= 6; i++) {
-        int x = cx + ((i % 2) ? 8 : -8);
-        line(prev - 2, ys[i - 1], x - 2, ys[i], 0x7a5200);
-        line(prev + 2, ys[i - 1], x + 2, ys[i], 0x7a5200);
-        line(prev - 1, ys[i - 1], x - 1, ys[i], 0xff9e00);
-        line(prev + 1, ys[i - 1], x + 1, ys[i], 0xff9e00);
-        line(prev, ys[i - 1], x, ys[i], 0xffffff);
+        int x = cx + ((i % 2) ? 10 : -10);
+        /* halo ancho (3 líneas naranjas) */
+        for (int o = -3; o <= 3; o++)
+            line(prev + o, ys[i - 1], x + o, ys[i], 0xff9e00);
+        /* núcleo blanco grueso (2 líneas) */
+        for (int o = -1; o <= 1; o++)
+            line(prev + o, ys[i - 1], x + o, ys[i], 0xffffff);
         prev = x;
     }
 }
@@ -284,9 +285,9 @@ static void overlay_bloom(int cx, int radius, int strength) {
 
 /* Tormenta: 3 rayos repartidos evitando reloj, copo y botones */
 static void draw_storm(void) {
-    overlay_bloom(320, 140, 72);
-    overlay_bloom(1150, 140, 72);
-    overlay_bloom(1560, 140, 72);
+    overlay_bloom(320, 70, 42);
+    overlay_bloom(1145, 70, 42);
+    overlay_bloom(1565, 70, 42);
     bolt(320);
     bolt(1145);
     bolt(1565);
