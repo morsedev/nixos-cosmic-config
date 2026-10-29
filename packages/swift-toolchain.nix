@@ -69,10 +69,12 @@ pkgs.stdenv.mkDerivation {
 
     # Compatibilidad de SONAME (Ubuntu → nixpkgs).
     mkdir -p $out/usr/lib/compat
-    ln -sf ${pkgs.sqlite.out}/lib/libsqlite3.so  $out/usr/lib/compat/libsqlite3.so.0
-    ln -sf ${pkgs.libxml2.out}/lib/libxml2.so     $out/usr/lib/compat/libxml2.so.2
-    ln -sf ${pkgs.z3.out}/lib/libz3.so            $out/usr/lib/compat/libz3.so.4
-    ln -sf ${pkgs.python3}/lib/libpython3.14.so   $out/usr/lib/compat/libpython3.12.so
+          ln -sf ${pkgs.sqlite.out}/lib/libsqlite3.so  $out/usr/lib/compat/libsqlite3.so.0
+          ln -sf ${pkgs.libxml2.out}/lib/libxml2.so     $out/usr/lib/compat/libxml2.so.2
+          ln -sf ${pkgs.z3.out}/lib/libz3.so            $out/usr/lib/compat/libz3.so.4
+          ln -sf ${pkgs.python3}/lib/libpython3.14.so.1.0 $out/usr/lib/compat/libpython3.12.so
+          ln -sf ${pkgs.python3}/lib/libpython3.14.so.1.0 $out/usr/lib/compat/libpython3.12.so.1.0
+          ln -sf ${pkgs.libedit.out}/lib/libedit.so.0   $out/usr/lib/compat/libedit.so.2
 
     # Objetos crt para el linker (de glibc y gcc de nixpkgs).
     crtdir=$out/usr/lib/clang/21/lib/linux

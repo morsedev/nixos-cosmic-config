@@ -47,6 +47,14 @@ let
     dontBuild = true;
     dontFixup = true;
 
+    patchPhase = ''
+      # Con `set -e` + `set -o pipefail`, la comprobación de lldb
+      # (`lldb_missing=$(ldd ... | awk | sort -u)`) muere en NixOS cuando
+      # `ldd` devuelve no-cero (libs "not found"). Es solo un WARNING: le
+      # añadimos `|| true` para que no aborte el instalador.
+      perl -0pi -e "s/awk '\/not found\/ \{print \\\$1\}' \| sort -u\)/awk '\/not found\/ {print \\\$1}' | sort -u || true)/" install-toolchain.sh
+    '';
+
     installPhase = ''
       mkdir -p $out/libexec/omarchy-apple-dev
       cp -r . $out/libexec/omarchy-apple-dev/
