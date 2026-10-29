@@ -113,5 +113,10 @@ in
       "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/backward"
       "${pkgs.glibc.dev}/include"
     ];
+    # xtool-core usa pkg-config para encontrar openssl y libimobiledevice.
+    PKG_CONFIG_PATH = lib.concatStringsSep ":" [
+      "${pkgs.openssl.dev}/lib/pkgconfig"
+      "${pkgs.libimobiledevice.dev}/lib/pkgconfig"
+    ];
   };
 }
