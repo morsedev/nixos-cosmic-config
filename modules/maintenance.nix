@@ -21,7 +21,7 @@ let
     set -euo pipefail
     gen="$(readlink ${profile} | sed -E 's/.*-([0-9]+)-link.*/\1/')"
     if [ -n "$gen" ]; then
-      ${pkgs.nix}/bin/nix-env --profile ${profile} --set-flag keep true "$gen"
+      ${pkgs.nix}/bin/nix-env --profile ${profile} --keep-generation "$gen"
       echo "generación $gen marcada como punto base"
     fi
   '';
