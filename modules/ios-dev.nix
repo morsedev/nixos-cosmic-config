@@ -92,4 +92,26 @@ in
   # Servicio de usbmuxd: el demonio que comunica Linux con el iPhone por USB
   # (lo usa device-run.sh para el pairing). Activa la detección del iPhone.
   services.usbmuxd.enable = true;
+
+  # Headers para los módulos C de xtool/zsign (openssl, libimobiledevice) y de
+  # glibc/gcc. El build de xtool compila C/C++ vía clang del toolchain de swift
+  # y necesita estos include dirs en el entorno.
+  environment.sessionVariables = {
+    C_INCLUDE_PATH = lib.concatStringsSep ":" [
+      "${pkgs.openssl.dev}/include"
+      "${pkgs.libimobiledevice.dev}/include"
+      "${pkgs.glibc.dev}/include"
+      "${pkgs.gcc-unwrapped.out}/lib/gcc/aarch64-unknown-linux-gnu/${pkgs.gcc-unwrapped.version}/include"
+      "${pkgs.zlib.dev}/include"
+      "${pkgs.libxml2.dev}/include"
+    ];
+    CPLUS_INCLUDE_PATH = lib.concatStringsSep ":" [
+      "${pkgs.openssl.dev}/include"
+      "${pkgs.libimobiledevice.dev}/include"
+      "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}"
+      "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/aarch64-unknown-linux-gnu"
+      "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/backward"
+      "${pkgs.glibc.dev}/include"
+    ];
+  };
 }
