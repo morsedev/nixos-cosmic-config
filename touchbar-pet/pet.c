@@ -251,32 +251,42 @@ static void overlay_flash(int f) {
         canvas[i] = mix(canvas[i], 0xffffff, f);
 }
 
-/* Rayo vertical con núcleo blanco y halo amarillo */
-static void bolt(int cx, int top, int bot, uint32_t halo) {
-    int n = 5;
-    int xs[6], ys[6];
-    xs[0] = cx; ys[0] = top;
-    for (int i = 1; i <= n; i++) {
-        xs[i] = cx + ((i % 2) ? 7 : -7) + (i == n ? 0 : 0);
-        ys[i] = top + i * (bot - top) / n;
+/* Rayo vertical: zigzag limpio de arriba a abajo, halo 3px + núcleo blanco */
+static void bolt(int cx) {
+    int ys[7];
+    ys[0] = 4;
+    for (int i = 1; i <= 6; i++) ys[i] = 4 + i * (H - 8) / 6;
+    int prev = cx;
+    for (int i = 1; i <= 6; i++) {
+        int x = cx + ((i % 2) ? 6 : -6);
+        line(prev - 1, ys[i - 1], x - 1, ys[i], 0xff9e00);
+        line(prev, ys[i - 1], x, ys[i], 0xff9e00);
+        line(prev + 1, ys[i - 1], x + 1, ys[i], 0xff9e00);
+        line(prev, ys[i - 1], x, ys[i], 0xffffff);
+        prev = x;
     }
-    for (int i = 0; i < n; i++) {
-        line(xs[i], ys[i], xs[i + 1], ys[i + 1], halo);      /* halo */
-        line(xs[i], ys[i] + 1, xs[i + 1], ys[i + 1] + 1, halo);
-        line(xs[i] - 1, ys[i], xs[i + 1] - 1, ys[i + 1], halo);
-        line(xs[i], ys[i], xs[i + 1], ys[i + 1], 0xffffff);  /* núcleo */
-    }
-    /* ramas */
-    line(cx + 4, ys[2], cx + 22, ys[2] - 14, 0xffffff);
-    line(cx - 3, ys[3], cx - 20, ys[3] + 12, 0xffffff);
-    line(cx + 6, ys[4], cx + 18, ys[4] - 10, 0xffffff);
 }
 
-/* Tormenta: 3 rayos verticales repartidos */
+/* Resplandor radial blanco alrededor de un punto (el "flash") */
+static void overlay_bloom(int cx, int radius, int strength) {
+    for (int y = 0; y < H; y++)
+        for (int x = 0; x < W; x++) {
+            int d = abs(x - cx) + abs(y - H / 2);
+            if (d < radius) {
+                int f = strength * (radius - d) / radius;
+                canvas[y * W + x] = mix(canvas[y * W + x], 0xffffff, f);
+            }
+        }
+}
+
+/* Tormenta: 3 rayos repartidos evitando reloj, copo y botones */
 static void draw_storm(void) {
-    bolt(320, 4, H - 4, 0xff9e00);
-    bolt(1020, 4, H - 4, 0xff9e00);
-    bolt(1720, 4, H - 4, 0xff9e00);
+    overlay_bloom(250, 380, 58);
+    overlay_bloom(1150, 380, 58);
+    overlay_bloom(1520, 380, 58);
+    bolt(250);
+    bolt(1150);
+    bolt(1520);
 }
 
 /* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
@@ -550,7 +560,7 @@ static void draw_buttons(Button *btns) {
         int cx = b->x + b->w / 2;
         int cy = b->y + b->h / 2;
         if (b->icon) draw_icon(b->icon, cx, cy, FG);
-        else if (b->label) text(cx - 3 * 6 / 2, cy - 4, 1, FG, b->label);
+        else if (b->label) text(cx - (int)(strlen(b->label) * 6 * 3) / 2, cy - (7 * 3) / 2, 3, FG, b->label);
     }
 }
 
@@ -847,6 +857,7 @@ static int battery_level(void) {
 
 /* ------------------------------------------------------------------------- */
 static void draw_scene(int frame, int blink, int batt, long el, int typing) {
+    (void)blink; blink = 1;
     fill(0, 0, W, H, BG);
     fill(0, 0, W, 1, BORDER);
     fill(0, H - 1, W, 1, BORDER);
@@ -860,13 +871,6 @@ static void draw_scene(int frame, int blink, int batt, long el, int typing) {
 
         /* tormenta: rayo que atraviesa toda la barra + flash al empezar */
         if (typing) {
-            /* el flash ilumina la barra pero se dibuja ANTES que los rayos,
-               así estos quedan por encima y se ven */
-            int flash = 0;
-            if (el < 100) flash = 42;
-            else if (el < 180) flash = 26;
-            else if (el < 260) flash = 12;
-            if (flash) overlay_flash(flash);
             draw_storm();
         }
 
