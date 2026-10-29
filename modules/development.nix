@@ -30,6 +30,10 @@
   # nRF52/nRF5x (las DK traen J-Link integrado).
   nixpkgs.config.permittedInsecurePackages = [ "segger-jlink-qt4-874" ];
 
+  # Acepta los términos de uso de SEGGER (J-Link Software pack). Es software de
+  # la empresa SEGGER; al aceptar aceptas sus términos (ver mensaje de nixpkgs).
+  nixpkgs.config.segger-jlink.acceptLicense = true;
+
   # ---------------------------------------------------------------------------
   # PAQUETES
   # ---------------------------------------------------------------------------
