@@ -32,7 +32,6 @@
 
 #include <xf86drm.h>
 #include <xf86drmMode.h>
-#include <libinput.h>
 
 #define W 2048
 #define H 60
@@ -350,6 +349,7 @@ static Button media_buttons[] = {
 static Button fkey_buttons[13];
 
 static int mode = MODE_CAT;
+static int redraw_needed = 0;
 
 static Button *current_buttons(void) {
     switch (mode) {
@@ -378,6 +378,7 @@ static void fkeys_init(void) {
 static void emit_key(int code);
 
 static void execute(int act) {
+    redraw_needed = 1;
     switch (act) {
         case ACT_CAT:   mode = MODE_CAT;   break;
         case ACT_MEDIA: mode = MODE_MEDIA; break;
@@ -507,6 +508,67 @@ static void draw_buttons(Button *btns) {
 static int in_fds[MAX_FDS];
 static int in_n = 0;
 
+/* --- Táctil de la Touch Bar (evdev directo) --- */
+static int touchbar_fd = -1;
+static int tb_x_max = 23045;          /* ABS_MT_POSITION_X máx (leído al abrir) */
+static int tb_y_max = 23045;
+static int touch_down = 0;
+static int touch_x = -1, touch_y = -1;
+static int down_btn = -1;
+
+static void open_touchbar(void) {
+    DIR *d = opendir("/dev/input");
+    if (!d) return;
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        if (strncmp(e->d_name, "event", 5) != 0) continue;
+        char path[64];
+        snprintf(path, sizeof(path), "/dev/input/%s", e->d_name);
+        int fd = open(path, O_RDONLY | O_NONBLOCK);
+        if (fd < 0) continue;
+        char name[256] = {0};
+        if (ioctl(fd, 0x80084506, name) >= 0 && strstr(name, "Touch Bar")) {
+            touchbar_fd = fd;
+            struct input_absinfo ai;
+            if (ioctl(fd, 0x80044540 | (53 << 16), &ai) == 0 && ai.maximum > 0)
+                tb_x_max = ai.maximum + 1;
+            if (ioctl(fd, 0x80044540 | (54 << 16), &ai) == 0 && ai.maximum > 0)
+                tb_y_max = ai.maximum + 1;
+            fprintf(stderr, "táctil en %s (x 0..%d)\n", e->d_name, tb_x_max - 1);
+            break;
+        }
+        close(fd);
+    }
+    closedir(d);
+}
+
+static void touch_event(int code, int value) {
+    if (code == 53)      touch_x = value * W / tb_x_max;
+    else if (code == 54) touch_y = value * H / tb_y_max;
+    else if (code == BTN_TOUCH) {
+        if (value == 1) {
+            touch_down = 1;
+            down_btn = -1;
+            Button *b;
+            for (b = current_buttons(); b->w; b++)
+                if (touch_x >= b->x && touch_x < b->x + b->w &&
+                    touch_y >= b->y && touch_y < b->y + b->h)
+                    break;
+            if (b->w) down_btn = (int)(b - current_buttons());
+        } else if (value == 0 && touch_down) {
+            touch_down = 0;
+            if (down_btn >= 0) {
+                Button *b = &current_buttons()[down_btn];
+                if (touch_x >= b->x && touch_x < b->x + b->w &&
+                    touch_y >= b->y && touch_y < b->y + b->h)
+                    execute(b->act);
+            }
+            down_btn = -1;
+        }
+    }
+}
+
+
 static void open_inputs(void) {
     DIR *d = opendir("/dev/input");
     if (!d) return;
@@ -516,7 +578,14 @@ static void open_inputs(void) {
         char path[64];
         snprintf(path, sizeof(path), "/dev/input/%s", e->d_name);
         int fd = open(path, O_RDONLY | O_NONBLOCK);
-        if (fd >= 0) in_fds[in_n++] = fd;
+        if (fd < 0) continue;
+        /* el táctil de la Touch Bar se procesa aparte */
+        char name[256] = {0};
+        if (ioctl(fd, 0x80084506, name) >= 0 && strstr(name, "Touch Bar")) {
+            close(fd);
+            continue;
+        }
+        in_fds[in_n++] = fd;
     }
     closedir(d);
 }
@@ -529,66 +598,11 @@ static void poll_keys(void) {
         while (read(in_fds[i], &ev, sizeof(ev)) == (ssize_t)sizeof(ev))
             if (ev.type == EV_KEY && ev.value == 1) pressed_keys++;
     }
-}
-
-/* --- libinput (táctil de la Touch Bar) --- */
-static int open_restricted(const char *path, int flags, void *ud) {
-    (void)ud;
-    return open(path, flags);
-}
-static void close_restricted(int fd, void *ud) { (void)ud; close(fd); }
-
-static const struct libinput_interface li_iface = { open_restricted, close_restricted };
-static struct libinput *li = NULL;
-static int li_fd = -1;
-
-/* puntero arrastrado: -1 = no tocando */
-static int down_button = -1;
-static int down_x = -1, down_y = -1;
-
-static void touch_init(void) {
-    li = libinput_path_create_context(&li_iface, NULL);
-    if (!li) return;
-    if (libinput_path_add_device(li, "/dev/input/event3") != 0) {
-        fprintf(stderr, "aviso: no se pudo abrir event3 (táctil)\n");
-        return;
-    }
-    li_fd = libinput_get_fd(li);
-}
-
-static void touch_dispatch(void) {
-    if (!li) return;
-    libinput_dispatch(li);
-    struct libinput_event *ev;
-    while ((ev = libinput_get_event(li)) != NULL) {
-        uint32_t t = libinput_event_get_type(ev);
-        if (t >= LIBINPUT_EVENT_TOUCH_DOWN && t <= LIBINPUT_EVENT_TOUCH_MOTION) {
-            struct libinput_event_touch *te = libinput_event_get_touch_event(ev);
-            int x = (int)libinput_event_touch_get_x_transformed(te, W);
-            int y = (int)libinput_event_touch_get_y_transformed(te, H);
-            if (t == LIBINPUT_EVENT_TOUCH_DOWN) {
-                Button *b;
-                for (b = current_buttons(); b->w; b++)
-                    if (x >= b->x && x < b->x + b->w && y >= b->y && y < b->y + b->h)
-                        break;
-                if (b->w) { down_button = (int)(b - current_buttons()); down_x = x; down_y = y; }
-                else { down_button = -1; }
-            } else if (t == LIBINPUT_EVENT_TOUCH_MOTION) {
-                if (down_button >= 0) {
-                    Button *b = &current_buttons()[down_button];
-                    if (x < b->x || x >= b->x + b->w || y < b->y || y >= b->y + b->h)
-                        down_button = -1;   /* salió del botón */
-                }
-            } else { /* UP */
-                if (down_button >= 0) {
-                    Button *b = &current_buttons()[down_button];
-                    if (x >= b->x && x < b->x + b->w && y >= b->y && y < b->y + b->h)
-                        execute(b->act);
-                }
-                down_button = -1;
-            }
+    if (touchbar_fd >= 0) {
+        while (read(touchbar_fd, &ev, sizeof(ev)) == (ssize_t)sizeof(ev)) {
+            if (ev.type == EV_ABS) touch_event(ev.code, ev.value);
+            else if (ev.type == EV_KEY && ev.code == BTN_TOUCH) touch_event(ev.code, ev.value);
         }
-        libinput_event_destroy(ev);
     }
 }
 
@@ -822,8 +836,8 @@ int main(int argc, char **argv) {
 
     backlight_on();
     load_frames();
+    open_touchbar();
     open_inputs();
-    touch_init();
     uinput_init();
     fkeys_init();
 
@@ -832,29 +846,22 @@ int main(int argc, char **argv) {
     int last_sec = -1;
     int key_state = 0;
 
-    struct pollfd pfds[3];
+    struct pollfd pfds[4];
     int nfds = 0;
-    pfds[0].fd = -1; pfds[0].events = POLLIN;
-    for (int i = 0; i < in_n && nfds < 3; i++) {
+    if (touchbar_fd >= 0) {
+        pfds[nfds].fd = touchbar_fd;
+        pfds[nfds].events = POLLIN;
+        nfds++;
+    }
+    for (int i = 0; i < in_n && nfds < 4; i++) {
         pfds[nfds].fd = in_fds[i];
         pfds[nfds].events = POLLIN;
         nfds++;
     }
-    int li_idx = -1;
-    if (li_fd >= 0) {
-        li_idx = nfds;
-        pfds[nfds].fd = li_fd;
-        pfds[nfds].events = POLLIN;
-        nfds++;
-    }
-
     for (;;) {
         int r = poll(pfds, nfds, 40);
-        if (r > 0) {
+        if (r > 0)
             poll_keys();
-            if (li_idx >= 0 && (pfds[li_idx].revents & POLLIN))
-                touch_dispatch();
-        }
 
         long t = now_ms();
         if (pressed_keys > 0) {
@@ -867,7 +874,8 @@ int main(int argc, char **argv) {
         if (!typing) key_state = 0;
 
         int sec = (int)(time(NULL) % 2);
-        if (typing || sec != last_sec) {
+        if (redraw_needed || typing || sec != last_sec) {
+            redraw_needed = 0;
             last_sec = sec;
             int fi = typing ? frame : 0;
             draw_scene(fi, sec, battery_level(), t, key_state);
