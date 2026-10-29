@@ -428,7 +428,7 @@ static void uinput_init(void) {
     struct uinput_setup us;
     memset(&us, 0, sizeof(us));
     snprintf(us.name, sizeof(us.name), "touchbar-pet");
-    us.id_bustype = BUS_USB;
+    us.id.bustype = BUS_USB;
     if (ioctl(uinput_fd, UI_DEV_SETUP, &us) == 0)
         ioctl(uinput_fd, UI_DEV_CREATE);
 }
@@ -539,7 +539,7 @@ static int open_restricted(const char *path, int flags, void *ud) {
 static void close_restricted(int fd, void *ud) { (void)ud; close(fd); }
 
 static const struct libinput_interface li_iface = { open_restricted, close_restricted };
-static libinput *li = NULL;
+static struct libinput *li = NULL;
 static int li_fd = -1;
 
 /* puntero arrastrado: -1 = no tocando */
@@ -559,11 +559,11 @@ static void touch_init(void) {
 static void touch_dispatch(void) {
     if (!li) return;
     libinput_dispatch(li);
-    libinput_event *ev;
+    struct libinput_event *ev;
     while ((ev = libinput_get_event(li)) != NULL) {
         uint32_t t = libinput_event_get_type(ev);
         if (t >= LIBINPUT_EVENT_TOUCH_DOWN && t <= LIBINPUT_EVENT_TOUCH_MOTION) {
-            libinput_event_touch *te = libinput_event_get_touch_event(ev);
+            struct libinput_event_touch *te = libinput_event_get_touch_event(ev);
             int x = (int)libinput_event_touch_get_x_transformed(te, W);
             int y = (int)libinput_event_touch_get_y_transformed(te, H);
             if (t == LIBINPUT_EVENT_TOUCH_DOWN) {
