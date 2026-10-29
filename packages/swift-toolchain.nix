@@ -57,7 +57,7 @@ pkgs.stdenv.mkDerivation {
   nativeBuildInputs = [ pkgs.patchelf ];
   # Deps extra cuyos headers se referencian en clang.cfg (módulos C del
   # ClangImporter: lzma, openssl, zlib, libxml2, libimobiledevice).
-  buildInputs = [ pkgs.xz.dev pkgs.openssl.dev pkgs.zlib.dev pkgs.libxml2.dev pkgs.libimobiledevice.dev ];
+  buildInputs = [ pkgs.xz.dev pkgs.openssl.dev pkgs.zlib.dev pkgs.libxml2.dev pkgs.libimobiledevice.dev pkgs.libplist.dev pkgs.libimobiledevice-glue.dev pkgs.libusbmuxd ];
 
   dontConfigure = true;
   dontBuild = true;
@@ -155,6 +155,9 @@ EOF
 -isystem ${pkgs.zlib.dev}/include
 -isystem ${pkgs.libxml2.dev}/include
 -isystem ${pkgs.libimobiledevice.dev}/include
+-isystem ${pkgs.libplist.dev}/include
+-isystem ${pkgs.libimobiledevice-glue.dev}/include
+-isystem ${pkgs.libusbmuxd}/include
 EOF
 
     # Exponer en $out/bin (lo que systemPackages mete en el PATH) los binarios
