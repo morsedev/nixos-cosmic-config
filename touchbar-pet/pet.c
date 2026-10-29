@@ -913,6 +913,7 @@ int main(int argc, char **argv) {
     uinput_init();
     fkeys_init();
     signal(SIGUSR1, save_shot);
+    signal(SIGUSR2, save_shot);
 
     int frame = 0;
     long anim_until = 0;
