@@ -10,8 +10,9 @@
 #   - xtool (nuestro fork: github.com/morsedev/xtool) se compila desde el
 #     instalador (necesita cargo/rustc, incluidos aquí).
 #   - Swift: lo aporta modules/swift.nix (ya en el sistema).
-#   - Deps de runtime: pymobiledevice3 (venv), cryptography, rcodesign
-#     (firmado), git, llvm/rsync (build Flutter), usbmuxd (parsing del iPhone).
+#   - Deps de runtime: rcodesign (firmado), git, llvm/rsync (build Flutter),
+#     usbmuxd (parsing del iPhone). pymobiledevice3 + cryptography los instala
+#     el propio instalador en un venv (en nixpkgs su dep pyimg4 está rota).
 #
 # FLUJO (interactivo, una vez por máquina):
 #   1. `install-toolchain.sh --user-only`  (usa NUESTRO swift de modules/swift.nix)
@@ -64,8 +65,6 @@ in
 {
   environment.systemPackages = with pkgs; [
     omarchyAppleDev
-    python3Packages.pymobiledevice3   # pairing/instalación de apps en el iPhone
-    python3Packages.cryptography
     rcodesign                          # firmado de .app/.ipa
     git
     llvm                               # build de Flutter (ibtool etc.)
