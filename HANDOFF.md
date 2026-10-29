@@ -35,7 +35,19 @@ Asahi y `uboot-asahi` dejan de compilar (dtc 1.8.1 rompe con
   Barra minimalista (sin pestañas, solo dirección + atrás/adelante) con
   `userChrome.css`, y página de nueva pestaña Tokyo Night con marca de agua
   `東京` (`userContent.css`).
-- **Neovim** (NixVim), **Ghostty** (paleta Tokyo Night), **Yazi**, **eza/bat/fd/rg**.
+- **Neovim** (NixVim) estilo Omarchy/LazyVim: terminal flotante `<leader>ft`,
+  lazygit flotante `<leader>gg`, proyectos `<leader>fp`, Trouble `<leader>xx`,
+  bufferline, noice, mini.ai, transparencia glass, formateo al guardar
+  (conform), DAP UI a la derecha/abajo (no pisa el árbol) + depuración
+  embedded (gdb+OpenOCD STM32/nRF52), flutter-tools y sourcekit-lsp (Swift,
+  usa el toolchain de swift.org si está instalado).
+- **Desarrollo**: toolchain embedded (gcc-arm-embedded, openocd, stlink,
+  dfu-util, picocom, platformio, nrf-command-line-tools, arduino-cli + udev
+  rules + grupos dialout/plugdev), PCB (kicad, librepcb, gerbv), IA agentica
+  CLI (aichat, codex, goose-cli, gemini-cli), nixd/alejandra, cargo-nextest.
+- **Ghostty** (paleta Tokyo Night), **Yazi**, **eza/bat/fd/rg**.
+- **Wallpapers**: 6 fondos (4 recortados + 2 generados cyberpunk/anime:
+  neon-grid y sakura-cyberpunk).
 - **Ajustes del sistema**: menú wofi `Super+I` o engranaje de la barra →
   `gnome-control-center` con `XDG_CURRENT_DESKTOP=GNOME ADW_DISABLE_PORTAL=1`.
 - **polkit**: regla para que `wheel` cambie fecha/hora/zona sin contraseña.

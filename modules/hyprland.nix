@@ -104,6 +104,9 @@
     "wallpapers/02-aurora.jpg".source = ../wallpapers/02-aurora.jpg;
     "wallpapers/03-manhattan.jpg".source = ../wallpapers/03-manhattan.jpg;
     "wallpapers/04-tokyo-street.jpg".source = ../wallpapers/04-tokyo-street.jpg;
+    # Cyberpunk/anime generados proceduralmente (Tokyo Night).
+    "wallpapers/05-neon-grid.png".source = ../wallpapers/05-neon-grid.png;
+    "wallpapers/06-sakura-cyberpunk.png".source = ../wallpapers/06-sakura-cyberpunk.png;
   };
 
   # ---------------------------------------------------------------------------

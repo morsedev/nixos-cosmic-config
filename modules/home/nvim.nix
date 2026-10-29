@@ -1,16 +1,21 @@
 # =============================================================================
-# modules/home/nvim.nix  —  Neovim como IDE (NixVim, estilo kickstart)
+# modules/home/nvim.nix  —  Neovim como IDE (NixVim) estilo Omarchy/LazyVim
 # =============================================================================
 #
 # NixVim permite configurar Neovim con opciones de Nix (no con Lua suelto).
 # Ventaja: Nix instala y compila todos los plugins, así que la CI puede
-# comprobarlos y sabemos que funcionarán en tu máquina.
+# comprobarlos y sabemos que funcionarán.
 #
-# Qué incluye:
-#   - LSP (autocompletado/errores): Rust, Nix, Flutter/Dart, Python, TS, C/C++...
-#   - DAP (depuración) con DAP UI y breakpoints
-#   - Telescope (buscar archivos/texto), Neo-tree (árbol de archivos)
-#   - cmp (menú de autocompletado), Treesitter (resaltado de sintaxis)
+# Qué incluye (orientado a dev: Nix, Swift, Flutter, Rust, embedded, PCB):
+#   - LSP: Rust, Nix, Flutter/Dart, Python, TS, C/C++, Swift (si toolchain), YAML, JSON...
+#   - DAP con UI en paneles DERECHA/ABAJO (no pisa el árbol de archivos) y
+#     configuración para embedded (gdb + OpenOCD, STM32/nRF52)
+#   - Terminal FLOTANTE (toggleterm) + lazygit FLOTANTE  (`<leader>ft`, `<leader>gg`)
+#   - flutter-tools (IDE Flutter: hot reload, dispositivo, widgets)
+#   - conform-nvim (formateo al guardar), bufferline (pestañas), trouble
+#     (diagnósticos), noice (UI moderna), mini.ai (text objects)
+#   - Telescope (archivos/texto/proyectos), Neo-tree (árbol), cmp
+#   - Transparencia estilo Omarchy: los paneles flotantes se funden con Ghostty
 #   - Tema Tokyo Night
 #
 # `{ inputs }:` → recibe los inputs del flake (necesitamos inputs.nixvim).
@@ -19,11 +24,25 @@
 { inputs }:
 { config, pkgs, lib, ... }:
 
+let
+  # Wrapper de sourcekit-lsp: Neovim lo usa para Swift. Solo funciona si
+  # tienes instalado el toolchain oficial de swift.org (ver README). Si no
+  # está, el LSP falla sin romper nada.
+  sourcekit-lsp = pkgs.writeShellScriptBin "sourcekit-lsp" ''
+    for p in \
+      /usr/local/swift/usr/bin/sourcekit-lsp \
+      "$HOME/.swift/usr/bin/sourcekit-lsp" \
+      /opt/swift/usr/bin/sourcekit-lsp
+    do
+      [ -x "$p" ] && exec "$p" "$@"
+    done
+    exit 1
+  '';
+in
 {
   # ---------------------------------------------------------------------------
   # MÓDULO DE NIXVIM
   # ---------------------------------------------------------------------------
-  # Importa el módulo que define las opciones `programs.nixvim.*`.
   imports = [ inputs.nixvim.homeModules.nixvim ];
 
   programs.nixvim = {
@@ -35,7 +54,6 @@
     # =========================================================================
     # OPCIONES DE EDITOR (equivalente a `set ...` en vim)
     # =========================================================================
-    # Cada clave es una opción de Neovim y su valor.
     opts = {
       number = true;             # números de línea
       relativenumber = true;     # números relativos a la línea actual
@@ -74,18 +92,12 @@
     # =========================================================================
     # ATAJOS GLOBALES (leader)
     # =========================================================================
-    # `leader` es la tecla "líder" para atajos. Aquí es la barra espaciadora.
     globals.mapleader = " ";
     globals.maplocalleader = " ";
 
     # =========================================================================
     # KEYMAPS (lista de atajos)
     # =========================================================================
-    # Cada elemento es un conjunto con:
-    #   mode    → modo de vim ("n" = normal, "i" = insert, "v" = visual)
-    #   key     → la combinación (<leader>ff = espacio+f+f)
-    #   action  → qué ejecuta (un comando de vim entre <cmd>...</cmd>)
-    #   options → extras, como la descripción que sale en el menú de ayuda
     keymaps = [
       # --- Telescope: buscar ---
       { mode = "n"; key = "<leader>ff"; action = "<cmd>Telescope find_files<CR>"; options.desc = "Buscar archivos"; }
@@ -93,11 +105,19 @@
       { mode = "n"; key = "<leader>fb"; action = "<cmd>Telescope buffers<CR>"; options.desc = "Buffers"; }
       { mode = "n"; key = "<leader>fh"; action = "<cmd>Telescope help_tags<CR>"; options.desc = "Ayuda"; }
       { mode = "n"; key = "<leader>fr"; action = "<cmd>Telescope oldfiles<CR>"; options.desc = "Recientes"; }
+      { mode = "n"; key = "<leader>fp"; action = "<cmd>Telescope project<CR>"; options.desc = "Proyectos"; }
       { mode = "n"; key = "<leader>fs"; action = "<cmd>Telescope lsp_document_symbols<CR>"; options.desc = "Símbolos"; }
       { mode = "n"; key = "<leader>gc"; action = "<cmd>Telescope git_commits<CR>"; options.desc = "Commits"; }
 
       # --- Neo-tree: árbol de archivos ---
       { mode = "n"; key = "<leader>e"; action = "<cmd>Neotree toggle<CR>"; options.desc = "Explorador"; }
+
+      # --- Terminal flotante y lazygit flotante (definidos en extraConfigLua) ---
+      { mode = "n"; key = "<leader>gg"; action = "<cmd>lua __lazygit_toggle()<CR>"; options.desc = "Lazygit (flotante)"; }
+
+      # --- Trouble: panel de diagnósticos ---
+      { mode = "n"; key = "<leader>xx"; action = "<cmd>Trouble toggle<CR>"; options.desc = "Toggle Trouble"; }
+      { mode = "n"; key = "<leader>xw"; action = "<cmd>Trouble diagnostics toggle<CR>"; options.desc = "Diagnósticos del workspace"; }
 
       # --- Moverte entre ventanas (Ctrl + h/j/k/l) ---
       { mode = "n"; key = "<C-h>"; action = "<C-w>h"; options.desc = "Izquierda"; }
@@ -126,6 +146,11 @@
       { mode = "n"; key = "<leader>dr"; action = "<cmd>lua require('dap').repl.toggle()<CR>"; options.desc = "DAP REPL"; }
       { mode = "n"; key = "<leader>db"; action = "<cmd>Telescope dap list_breakpoints<CR>"; options.desc = "Lista breakpoints"; }
 
+      # --- Flutter (flutter-tools) ---
+      { mode = "n"; key = "<leader>frr"; action = "<cmd>lua require('flutter-tools.commands').run()<CR>"; options.desc = "Flutter run"; }
+      { mode = "n"; key = "<leader>fh"; action = "<cmd>lua require('flutter-tools.commands').hot_reload()<CR>"; options.desc = "Hot reload"; }
+      { mode = "n"; key = "<leader>fH"; action = "<cmd>lua require('flutter-tools.commands').hot_restart()<CR>"; options.desc = "Hot restart"; }
+
       # --- Quitar el resaltado de búsqueda ---
       { mode = "n"; key = "<Esc>"; action = "<cmd>nohlsearch<CR>"; }
     ];
@@ -133,12 +158,14 @@
     # =========================================================================
     # PLUGINS
     # =========================================================================
-    # `enable = true` instala y configura el plugin. Cada bloque es un plugin.
     plugins = {
       # --- Navegación / búsqueda ---
       telescope = {
         enable = true;
-        extensions.fzf-native.enable = true;  # motor de búsqueda más rápido
+        extensions = {
+          fzf-native.enable = true;  # motor de búsqueda más rápido
+          project.enable = true;     # selector de proyectos (`<leader>fp`)
+        };
       };
       neo-tree = {
         enable = true;
@@ -153,6 +180,63 @@
               hide_dotfiles = false;  # mostrar archivos ocultos
               hide_gitignored = false;# mostrar los ignorados por git
             };
+          };
+        };
+      };
+
+      # --- Pestañas (estilo LazyVim/Omarchy) ---
+      bufferline.enable = true;
+
+      # --- Terminal flotante (Omarchy usa esto para terminal y lazygit) ---
+      toggleterm = {
+        enable = true;
+        settings = {
+          direction = "float";            # terminal flotante
+          open_mapping = "[[<leader>ft]]"; # `<leader>ft` abre/cierra la terminal
+          size = 12;
+          float_opts.border = "curved";
+        };
+      };
+
+      # --- UI moderna (cmdline, notificaciones, message popups) ---
+      noice.enable = true;
+
+      # --- Text objects estilo mini (ai/ii) ---
+      mini-ai.enable = true;
+
+      # --- Formateo al guardar (conform) ---
+      conform-nvim = {
+        enable = true;
+        autoInstall = {
+          enable = true;   # instala los formatters automáticamente
+          # Los que NO vienen en la caché de conform los damos nosotros:
+          overrides = {
+            alejandra = pkgs.alejandra;     # Nix
+          };
+        };
+        settings = {
+          format_on_save = {
+            lsp_format = "fallback";   # si no hay formatter, usa el del LSP
+            timeout_ms = 2000;
+          };
+          formatters_by_ft = {
+            nix = [ "alejandra" ];
+            lua = [ "stylua" ];
+            rust = [ "rustfmt" ];
+            python = [ "black" "isort" ];
+            javascript = [ "prettier" ];
+            javascriptreact = [ "prettier" ];
+            typescript = [ "prettier" ];
+            typescriptreact = [ "prettier" ];
+            json = [ "prettier" ];
+            jsonc = [ "prettier" ];
+            yaml = [ "prettier" ];
+            sh = [ "shfmt" ];
+            markdown = [ "prettier" ];
+            c = [ "clang-format" ];
+            cpp = [ "clang-format" ];
+            dart = [ "dart_format" ];
+            swift = [ "swift-format" ];
           };
         };
       };
@@ -175,7 +259,6 @@
       };
 
       # --- LSP (servidores de lenguaje) ---
-      # Cada servidor da autocompletado, errores, ir a definición, etc.
       lsp = {
         enable = true;
         servers = {
@@ -184,18 +267,17 @@
           pyright.enable = true;        # Python
           ts_ls.enable = true;          # TypeScript/JavaScript
           lua_ls.enable = true;         # Lua
-          clangd.enable = true;         # C/C++
+          clangd.enable = true;         # C/C++ (incluye embedded)
           bashls.enable = true;         # Bash
           yamlls.enable = true;         # YAML
           jsonls.enable = true;         # JSON
-          # Swift: sourcekit LSP no disponible en aarch64 (swift roto en nixpkgs).
-          # Se configura aparte si instalas el toolchain oficial de swift.org.
-
           # Flutter/Dart: le decimos qué paquete provee el servidor.
           dartls = {
             enable = true;
             package = pkgs.dart;
           };
+          # Swift: NixVim no trae sourcekit-lsp; se configura en extraConfigLua
+          # usando el toolchain de swift.org si está instalado (ver README).
         };
         # Atajos específicos de LSP (se activan cuando hay un servidor activo).
         keymaps = {
@@ -214,14 +296,12 @@
         enable = true;
         autoEnableSources = true;
         settings = {
-          # De dónde saca las sugerencias:
           sources = [
             { name = "nvim_lsp"; }   # del LSP
             { name = "buffer"; }     # del texto del propio archivo
             { name = "path"; }       # rutas de archivos
             { name = "luasnip"; }    # snippets
           ];
-          # Teclas del menú de autocompletado.
           mapping = {
             "<C-Space>" = "cmp.mapping.complete()";              # abrir menú
             "<CR>" = "cmp.mapping.confirm({ select = true })";   # aceptar
@@ -233,12 +313,51 @@
       luasnip.enable = true;  # motor de snippets
 
       # --- Depuración (DAP = Debug Adapter Protocol) ---
-      dap.enable = true;              # motor de depuración
-      dap-ui.enable = true;           # paneles (variables, breakpoints...)
+      dap.enable = true;
       dap-virtual-text.enable = true; # muestra valores junto al código
+
+      # dap-ui: paneles a la DERECHA y ABAJO para que el árbol de archivos
+      # (izquierda) no se pise. Los adaptadores y configuraciones van en
+      # extraConfigLua.
+      dap-ui = {
+        enable = true;
+        settings.layouts = [
+          {
+            elements = [
+              { id = "scopes";      size = 0.30; }
+              { id = "watches";     size = 0.20; }
+              { id = "stacks";      size = 0.25; }
+              { id = "breakpoints"; size = 0.25; }
+            ];
+            size = 38;
+            position = "right";
+          }
+          {
+            elements = [
+              { id = "repl";    size = 0.50; }
+              { id = "console"; size = 0.50; }
+            ];
+            size = 28;
+            position = "bottom";
+          }
+        ];
+      };
 
       # --- Git ---
       gitsigns.enable = true;  # marcas en el margen (añadido/modificado...)
+
+      # --- Flutter: IDE dentro de Neovim (hot reload, widgets, devices) ---
+      flutter-tools = {
+        enable = true;
+        settings = {
+          decorations.statusline.app_version = true;
+          devices.auto_select = true;
+          dev_tools.autostart = true;
+        };
+      };
+
+      # --- Panel de diagnósticos / problemas (estilo IDE) ---
+      trouble.enable = true;
 
       # --- Calidad de vida ---
       which-key.enable = true;      # menú que muestra atajos disponibles
@@ -252,17 +371,49 @@
     };
 
     # =========================================================================
-    # CONFIGURACIÓN LUA EXTRA (para DAP: adaptadores y configuraciones)
+    # CONFIGURACIÓN LUA EXTRA
     # =========================================================================
-    # `extraConfigLua = ''...''` es una cadena de VARIAS LÍNEAS con código Lua,
-    # que NixVim añade tal cual a la config de Neovim.
-    #
-    # ⚠️ OJO con `${...}`: dentro de `''...''`, Nix interpreta `${...}` como
-    # inserción de un valor de Nix. Por eso:
-    #   - `${pkgs.lldb}`  → SÍ queremos que Nix inserte la ruta del paquete.
-    #   - `''${workspaceFolder}` → queremos el TEXTO literal `${workspaceFolder}`
-    #     (una variable de DAP), así que se escapa con `''${`.
     extraConfigLua = ''
+      -- ---------------------------------------------------------------------
+      -- Swift LSP (sourcekit-lsp): usa el toolchain de swift.org si está
+      -- instalado (ver README). El wrapper devuelve error si no existe, así
+      -- que abrir .swift sin toolchain no rompe nada.
+      -- ---------------------------------------------------------------------
+      local ok_lsp = pcall(require, "lspconfig")
+      if ok_lsp then
+        require("lspconfig").sourcekit_lsp.setup({
+          cmd = { "${sourcekit-lsp}/bin/sourcekit-lsp" },
+          filetypes = { "swift" },
+        })
+      end
+
+      -- ---------------------------------------------------------------------
+      -- Terminal flotante + lazygit flotante (toggleterm)
+      -- ---------------------------------------------------------------------
+      local Terminal = require("toggleterm.terminal").Terminal
+      local lazygit = Terminal:new({ cmd = "lazygit", direction = "float", hidden = true })
+      function _G.__lazygit_toggle()
+        lazygit:toggle()
+      end
+
+      -- ---------------------------------------------------------------------
+      -- Transparencia estilo Omarchy: los paneles flotantes se funden con
+      -- Ghostty (que ya es translúcido + blur de Hyprland).
+      -- ---------------------------------------------------------------------
+      local transparent = {
+        "Normal", "NormalFloat", "FloatBorder", "Pmenu", "PmenuSel",
+        "Terminal", "StatusLine", "StatusLineNC", "WhichKeyFloat",
+        "TelescopeNormal", "TelescopeBorder", "TelescopePromptNormal",
+        "NeoTreeNormal", "NeoTreeNormalNC", "NeoTreeFloatTitle",
+        "NotifyBackground", "MsgArea", "NoiceCmdlinePopup", "NoiceCmdlinePopupBorder",
+      }
+      for _, hl in ipairs(transparent) do
+        vim.api.nvim_set_hl(0, hl, { bg = "NONE" })
+      end
+
+      -- ---------------------------------------------------------------------
+      -- DAP: adaptadores y configuraciones
+      -- ---------------------------------------------------------------------
       local dap = require("dap")
       local dapui = require("dapui")
 
@@ -309,6 +460,27 @@
           cwd = "''${workspaceFolder}",
         },
       }
+
+      -- Embedded (STM32/nRF52): gdb + OpenOCD en el puerto 3333.
+      -- Uso: arranca openocd (config de tu placa), luego F5 con el ELF.
+      dap.adapters.gdb = {
+        type = "executable",
+        command = "arm-none-eabi-gdb",
+        args = { "--interpreter=dap", "--eval-command=set pagination off" },
+        name = "gdb",
+      }
+      dap.configurations.embedded = {
+        {
+          name = "OpenOCD (STM32/nRF52)",
+          type = "gdb",
+          request = "attach",
+          target = "remote :3333",
+          program = function()
+            return vim.fn.input("ELF: ", vim.fn.getcwd() .. "/build/", "file")
+          end,
+          cwd = "''${workspaceFolder}",
+        },
+      }
     '';
 
     # =========================================================================
@@ -321,6 +493,12 @@
       prettier        # formatear JS/TS/HTML/CSS/JSON
       ripgrep         # búsqueda de texto (Telescope live_grep)
       fd              # búsqueda de archivos (Telescope find_files)
+      lazygit         # interfaz TUI para git (la usa el terminal flotante)
+      # Formatters que usa conform (los del autoInstall los pone él mismo):
+      alejandra       # formatear Nix
+      # gcc-arm-embedded lo instala el módulo de sistema (development.nix); lo
+      # dejamos también aquí para que nvim tenga `arm-none-eabi-gdb` en PATH.
+      gcc-arm-embedded
     ];
   };
 }
