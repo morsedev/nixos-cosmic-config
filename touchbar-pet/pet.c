@@ -53,6 +53,10 @@ static uint32_t canvas[W * H];
 #define GREEN     0x9ece6a
 #define YELLOW    0xe0af68
 
+/* declaraciones adelantadas (save_shot las usa antes de definirse) */
+static void draw_scene(int frame, int blink, int batt, long el, int typing);
+static int battery_level(void);
+
 static void px(int x, int y, uint32_t c) {
     if (x < 0 || y < 0 || x >= W || y >= H) return;
     canvas[y * W + x] = c;
