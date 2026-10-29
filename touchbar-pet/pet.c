@@ -259,11 +259,11 @@ static void bolt(int cx) {
     int prev = cx;
     for (int i = 1; i <= 6; i++) {
         int x = cx + ((i % 2) ? 10 : -10);
-        /* halo ancho (3 líneas naranjas) */
-        for (int o = -3; o <= 3; o++)
+        /* halo ancho (8 px naranja) */
+        for (int o = -4; o <= 4; o++)
             line(prev + o, ys[i - 1], x + o, ys[i], 0xff9e00);
-        /* núcleo blanco grueso (2 líneas) */
-        for (int o = -1; o <= 1; o++)
+        /* núcleo blanco grueso (4 px) */
+        for (int o = -2; o <= 2; o++)
             line(prev + o, ys[i - 1], x + o, ys[i], 0xffffff);
         prev = x;
     }
