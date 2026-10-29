@@ -41,6 +41,12 @@ Asahi y `uboot-asahi` dejan de compilar (dtc 1.8.1 rompe con
   (conform), DAP UI a la derecha/abajo (no pisa el árbol) + depuración
   embedded (gdb+OpenOCD STM32/nRF52), flutter-tools y sourcekit-lsp (Swift,
   usa el toolchain de swift.org si está instalado).
+- **Swift**: paquete propio `packages/swift-toolchain.nix` (toolchain oficial
+  de swift.org 6.4.1 para aarch64, adaptado a NixOS: patchelf + layout `usr/`
+  + SONAME compat + crt + swiftc wrapper con `--dynamic-linker`). Funcionan
+  `swift`, `swiftc`, `swift build/run`, `swift-format`, `sourcekit-lsp`.
+  `swift test` (XCTest) aún falla (módulo C SwiftGlibc/ClangImporter). Se
+  instala automáticamente con el sistema (módulo `modules/swift.nix`).
 - **Desarrollo**: toolchain embedded (gcc-arm-embedded, openocd, stlink,
   dfu-util, picocom, platformio, nrf-command-line-tools, arduino-cli + udev
   rules + grupos dialout/plugdev), PCB (kicad, librepcb, gerbv), IA agentica

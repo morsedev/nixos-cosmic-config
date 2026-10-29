@@ -20,9 +20,14 @@
 #   6. `usr/bin/ld -> ld.lld` (clang busca `ld` en PATH y el toolchain solo
 #      trae `ld.lld`).
 #
-# Resultado: `swift`, `swiftc`, `swift build/run/test`, `swift-format` y
+# Resultado: `swift`, `swiftc`, `swift build/run`, `swift-format` y
 # `sourcekit-lsp` funcionan directamente en NixOS aarch64, sin FHS ni
 # variables de entorno globales.
+#
+# LIMITACIÓN CONOCIDA: `swift test` (XCTest) falla al construir el módulo C
+# `SwiftGlibc` (el ClangImporter del toolchain no detecta la libc del target
+# fuera de un sistema estilo Ubuntu). `swift build`, `swift run` y la
+# compilación directa con `swiftc` funcionan.
 #
 # Licencia: toolchain de swift.org (Apache-2.0); se descarga en el build.
 # =============================================================================

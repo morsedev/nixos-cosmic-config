@@ -164,9 +164,18 @@ sudo cachix push macnix $(nix-store -qR /run/current-system)
 
 ## Swift
 
-`pkgs.swift` está marcado *broken* en `aarch64-linux` en nixpkgs. Instala el
+`pkgs.swift` está marcado *broken* en `aarch64-linux` en nixpkgs. Este repo lo
+resuelve con un **paquete propio** (`packages/swift-toolchain.nix`): descarga el
 toolchain oficial de [swift.org](https://www.swift.org/install/linux/) (tarball
-ARM64) y añade `sourcekit` a NixVim apuntando a ese binario.
+ARM64 para Ubuntu 24.04) y lo adapta a NixOS (patchelf, layout `usr/`, SONAMEs
+de compatibilidad, crt, wrapper de `swiftc` con `--dynamic-linker`).
+
+- `swift`, `swiftc`, `swift build`, `swift run`, `swift-format` y
+  `sourcekit-lsp` funcionan directamente.
+- Compilar: `nix build .#swift-toolchain` o instalado con el sistema.
+- Limitación conocida: `swift test` (XCTest) no construye el módulo C
+  `SwiftGlibc` (el ClangImporter no encuentra la libc del target); el resto
+  del flujo funciona.
 
 ---
 
