@@ -378,14 +378,13 @@ in
       -- Swift LSP (sourcekit-lsp): usa el toolchain de swift.org si está
       -- instalado (ver README). El wrapper devuelve error si no existe, así
       -- que abrir .swift sin toolchain no rompe nada.
+      -- Framework moderno (nvim 0.11+); lspconfig está deprecado.
       -- ---------------------------------------------------------------------
-      local ok_lsp = pcall(require, "lspconfig")
-      if ok_lsp then
-        require("lspconfig").sourcekit_lsp.setup({
-          cmd = { "${sourcekit-lsp}/bin/sourcekit-lsp" },
-          filetypes = { "swift" },
-        })
-      end
+      vim.lsp.config("sourcekit-lsp", {
+        cmd = { "${sourcekit-lsp}/bin/sourcekit-lsp" },
+        filetypes = { "swift" },
+      })
+      vim.lsp.enable("sourcekit-lsp")
 
       -- ---------------------------------------------------------------------
       -- Terminal flotante + lazygit flotante (toggleterm)
