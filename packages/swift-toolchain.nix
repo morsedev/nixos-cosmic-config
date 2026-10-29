@@ -106,6 +106,15 @@ EOF
     # clang busca `ld` en PATH.
     ln -sf ld.lld $out/usr/bin/ld
 
+    # Exponer en $out/bin (lo que systemPackages mete en el PATH) los binarios
+    # de usr/bin. El layout usr/ se mantiene para que swiftpm detecte bien la
+    # raíz del toolchain (el driver resuelve /proc/self/exe hasta swift-driver
+    # dentro de usr/bin, así que la raíz sigue saliendo correcta).
+    mkdir -p $out/bin
+    for t in swift swiftc swift-build swift-package swift-run swift-test swift-format sourcekit-lsp lldb ld; do
+      [ -e "$out/usr/bin/$t" ] && ln -sf ../usr/bin/$t $out/bin/$t
+    done
+
     echo "OK: $n ELF procesados"
   '';
 
