@@ -24,6 +24,12 @@
   # módulo para que funcione en cualquier máquina que consuma nixarchy.
   nixpkgs.config.allowUnfree = true;
 
+  # OpenOCD arrastra el paquete de J-Link (segger-jlink) para dar soporte a los
+  # depuradores J-Link de SEGGER. Es una versión antigua (qt4) marcada como
+  # "insegura" por nixpkgs; la permitimos explícitamente porque es útil para
+  # nRF52/nRF5x (las DK traen J-Link integrado).
+  nixpkgs.config.permittedInsecurePackages = [ "segger-jlink-qt4-874" ];
+
   # ---------------------------------------------------------------------------
   # PAQUETES
   # ---------------------------------------------------------------------------
