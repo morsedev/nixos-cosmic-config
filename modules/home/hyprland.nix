@@ -202,6 +202,12 @@ in
         force_default_wallpaper = 0;
         disable_hyprland_logo = true;
         disable_splash_rendering = true;
+
+        # Al maximizar (Super+F) y cambiar de ventana con los atajos de tiling,
+        # el maximizado "sigue" al foco: la ventana anterior se restaura y la
+        # nueva pasa a estar maximizada. (0 = el foco vuelve al maximizado y no
+        # se puede cambiar; 2 = se sale del maximizado al cambiar).
+        on_focus_under_fullscreen = 1;
       };
 
       # --- Reglas de VENTANA ---
