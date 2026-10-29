@@ -198,7 +198,6 @@
     # --- Componentes del ricing ---
     sddm-astronaut      # tema gráfico del login
     fastfetch           # resumen del sistema con logo (para la terminal)
-    opencode            # asistente de IA en la terminal (el que usamos para configurar)
     waybar              # barra superior
     wofi                # lanzador de aplicaciones
     mako                # notificaciones

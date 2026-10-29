@@ -52,8 +52,11 @@ DRM (dumb buffer + **atomic commit**, único que acepta `appletbdrm`) y:
   por uinput),
 - lee el **táctil** del panel por evdev (`ABS_MT_POSITION_X`, rango 0..23044),
 - anima el gato por tiempo (fotogramas en `/etc/touchbar-pet/frames/*.ppm`),
-- tormenta al teclear (3 rayos verticales + flash radial; el usuario pidió
-  aparcar/mejorar esto).
+- tormenta al teclear (rayos finos morados con fade, cerca del gato; rediseñada
+  para ser sutil en vez de los antiguos rayos naranjas gruesos).
+- los comandos media se lanzan con `XDG_RUNTIME_DIR` + `DBUS_SESSION_BUS_ADDRESS`
+  del usuario (`run_user_cmd`), porque el daemon corre como root y sin eso
+  `wpctl`/`playerctl` no encuentran la sesión.
 
 Comandos (en `/run/current-system/sw/bin`):
 - `touchbar-pet on|off|status` — alterna entre el gato y tiny-dfr (botones Fn).
@@ -70,7 +73,7 @@ El gato real es de un GIF de gifdb.com (uso personal, marca de agua recortada).
 
 ```
 Super+Enter terminal · Super+D walker · Super+E nautilus · Super+Q cerrar
-Super+F fullscreen · Super+V flotar · Super+M salir · Super+L bloquear
+Super+F fullscreen (respeta barra) · Super+Shift+F fullscreen real · Super+V flotar · Super+M salir · Super+L bloquear
 Super+S / Shift+S captura · Super+C portapapeles · Super+/ chuleta
 Super+W / Shift+W wallpaper · Super+N wifi · Super+B bluetooth · Super+A audio
 Super+I ajustes · Super+Shift+T touchbar · Super+1..9 workspaces
@@ -84,14 +87,18 @@ Super+I ajustes · Super+Shift+T touchbar · Super+1..9 workspaces
 2. **gnome-control-center** muestra el banner "Error — some settings cannot be
    unlocked" y deshabilita "Automatic Date & Time" fuera de GNOME. La hora/zona
    ya están bien vía config.
-3. **Tormenta de la Touch Bar**: el usuario la considera "dibujo animado feo"
-   y pidió aparcarla. Está ahí pero se puede rediseñar.
-4. **Módulo "0" en la barra** (entre wifi y batería) sin etiqueta: revisar.
+3. **Touch Bar**: gato pegado a la izquierda, botones MEDIA/FKEYS rediseñados
+   (más grandes, sin solapes, centinela del array arreglado), comandos media con
+   entorno del usuario y tormenta sutil con fade. Revisar con `touchbar-shot`
+   tras el siguiente `nixos-rebuild` en el Mac.
+4. **Módulo "0" en la barra** (entre wifi y batería): DIAGNOSTICADO — es el
+   icono de Bluetooth de waybar (glifo FA5 `U+F293`, un rombo que a 13px parece
+   un "0"). La config cubre todos los estados (no hay bug). Si molesta, quitar
+   el módulo `bluetooth` de `modules/home/bar.nix`.
 5. **Zen Browser** no renderiza en Asahi (páginas en blanco); se usa Firefox.
 6. **Icono verde de File Roller** y pestañas de pwvucontrol: cosmética, sin arreglo simple.
-7. **Pequeño problema del repo**: `opencode` está en `modules/hyprland.nix`
-   (systemPackages) y la lista del ricing; añadir más herramientas de desarrollo
-   va en `modules/development.nix`.
+7. ~~opencode en hyprland.nix~~ → movido a `modules/development.nix`. Las
+   herramientas de desarrollo nuevas van ahí.
 
 ## Mantenimiento (ya configurado en `modules/maintenance.nix`)
 

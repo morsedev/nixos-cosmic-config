@@ -24,6 +24,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <poll.h>
+#include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -246,30 +247,7 @@ static uint32_t mix(uint32_t a, uint32_t b, int f) {
     return ((uint32_t)r << 16) | ((uint32_t)g << 8) | bl;
 }
 
-static void overlay_flash(int f) {
-    for (int i = 0; i < W * H; i++)
-        canvas[i] = mix(canvas[i], 0xffffff, f);
-}
-
-/* Rayo vertical: zigzag limpio de arriba a abajo, halo 3px + núcleo blanco */
-static void bolt(int cx) {
-    int ys[7];
-    ys[0] = 4;
-    for (int i = 1; i <= 6; i++) ys[i] = 4 + i * (H - 8) / 6;
-    int prev = cx;
-    for (int i = 1; i <= 6; i++) {
-        int x = cx + ((i % 2) ? 10 : -10);
-        /* halo ancho (8 px naranja) */
-        for (int o = -4; o <= 4; o++)
-            line(prev + o, ys[i - 1], x + o, ys[i], 0xff9e00);
-        /* núcleo blanco grueso (4 px) */
-        for (int o = -2; o <= 2; o++)
-            line(prev + o, ys[i - 1], x + o, ys[i], 0xffffff);
-        prev = x;
-    }
-}
-
-/* Resplandor radial con caída cuadrática: núcleo blanco que se disuelve */
+/* Resplandor radial con caída cuadrática: núcleo que se disuelve en blanco */
 static void overlay_bloom(int cx, int radius, int strength) {
     int cy = H / 2;
     for (int y = 0; y < H; y++)
@@ -283,26 +261,41 @@ static void overlay_bloom(int cx, int radius, int strength) {
         }
 }
 
-/* Tormenta: 3 rayos repartidos evitando reloj, copo y botones */
-static void draw_storm(void) {
-    overlay_bloom(320, 70, 42);
-    overlay_bloom(1145, 70, 42);
-    overlay_bloom(1565, 70, 42);
-    bolt(320);
-    bolt(1145);
-    bolt(1565);
+/* Relámpago fino en zigzag: halo morado + núcleo blanco, con fade f (0..100) */
+static void bolt_fine(int cx, int top, int bot, int f, int flip) {
+    int xs[5], ys[5], n = 4;
+    ys[0] = top;
+    for (int i = 1; i <= n; i++) ys[i] = top + (bot - top) * i / n;
+    xs[0] = cx;
+    for (int i = 1; i <= n; i++)
+        xs[i] = cx + ((i % 2) ? (flip ? 10 : -10) : (flip ? -10 : 10));
+    for (int i = 1; i <= n; i++) {
+        for (int o = -3; o <= 3; o++)
+            line(xs[i - 1] + o, ys[i - 1], xs[i] + o, ys[i], mix(PURPLE, BG, f));
+        for (int o = -1; o <= 1; o++)
+            line(xs[i - 1] + o, ys[i - 1], xs[i] + o, ys[i], mix(0xffffff, BG, f));
+    }
 }
 
-/* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
-/* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
-static void draw_bolt(int x, int seed) {
-    int pts[][2] = {
-        { x, 4 }, { x + 10, 20 }, { x + 4, 20 }, { x + 14, 40 },
-        { x + 20, 24 }, { x + 14, 24 }, { x + 26, 2 }, { x, 4 }
-    };
-    for (int i = 0; i < 7; i++)
-        line(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], YELLOW);
-    (void)seed;
+/* Chispas que acompañan a los rayos */
+static void sparks(int cx, int cy, int f) {
+    for (int i = 0; i < 6; i++) {
+        int dx = ((i * 37) % 25) - 12;
+        int dy = -((i * 19) % 30);
+        disc(cx + dx, cy + dy, 1, mix(CYAN, BG, f));
+    }
+}
+
+/* Tormenta (al teclear): rayos finos a la izquierda, cerca del gato, que se
+   desvanecen al final de la pulsación. Nunca cubre reloj, batería ni botones. */
+static void draw_storm(int el) {
+    int f = el > 400 ? (700 - el) * 100 / 300 : 100;
+    if (f <= 0) return;
+    bolt_fine(150, 4, 54, f, 0);
+    bolt_fine(235, 4, 54, f, 1);
+    bolt_fine(90, 4, 54, f, 1);
+    sparks(200, 30, f);
+    overlay_bloom(70, 120, 12 * f / 100);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -398,20 +391,20 @@ static Button cat_buttons[] = {
 };
 
 static Button media_buttons[] = {
-    { 48, 8, 50, 44, ACT_BRIGHT_DOWN, NULL, 4 },
-    { 102, 8, 50, 44, ACT_BRIGHT_UP, NULL, 4 },
-    { 156, 8, 50, 44, ACT_VOL_DOWN, NULL, 5 },
-    { 210, 8, 50, 44, ACT_VOL_UP, NULL, 5 },
-    { 264, 8, 50, 44, ACT_MUTE, NULL, 6 },
-    { 318, 8, 54, 44, ACT_PREV, NULL, 2 },
-    { 376, 8, 54, 44, ACT_PLAY, NULL, 1 },
-    { 434, 8, 54, 44, ACT_NEXT, NULL, 3 },
+    { 40, 8, 150, 44, ACT_BRIGHT_DOWN, NULL, 4 },
+    { 202, 8, 150, 44, ACT_BRIGHT_UP, NULL, 4 },
+    { 364, 8, 150, 44, ACT_VOL_DOWN, NULL, 5 },
+    { 526, 8, 150, 44, ACT_VOL_UP, NULL, 5 },
+    { 688, 8, 150, 44, ACT_MUTE, NULL, 6 },
+    { 850, 8, 150, 44, ACT_PREV, NULL, 2 },
+    { 1012, 8, 150, 44, ACT_PLAY, NULL, 1 },
+    { 1174, 8, 150, 44, ACT_NEXT, NULL, 3 },
     /* volver al gato: a la derecha del todo */
     { W - 198, 8, 94, 44, ACT_CAT, NULL, 7 },
     { 0, 0, 0, 0, 0, NULL, 0 }
 };
 
-static Button fkey_buttons[13];
+static Button fkey_buttons[14];
 
 static int mode = MODE_CAT;
 static int redraw_needed = 0;
@@ -425,22 +418,45 @@ static Button *current_buttons(void) {
 }
 
 static void fkeys_init(void) {
-    int bw = (W - 40) / 12;
+    int gap = 6;
+    int bw = ((W - 98) - 20 - 11 * gap) / 12;
     for (int i = 0; i < 12; i++) {
         static char lbl[16];
         snprintf(lbl, sizeof(lbl), "F%d", i + 1);
-        fkey_buttons[i].x = 40 + i * bw;
+        fkey_buttons[i].x = 20 + i * (bw + gap);
         fkey_buttons[i].y = 8;
-        fkey_buttons[i].w = bw - 8;
+        fkey_buttons[i].w = bw;
         fkey_buttons[i].h = 44;
         fkey_buttons[i].act = ACT_FKEY_1 + i;
         fkey_buttons[i].label = strdup(lbl);
         fkey_buttons[i].icon = 0;
     }
     fkey_buttons[12] = (Button){ W - 98, 8, 94, 44, ACT_CAT, NULL, 7 };
+    fkey_buttons[13] = (Button){ 0, 0, 0, 0, 0, NULL, 0 };
 }
 
 static void emit_key(int code);
+
+/* ------------------------------------------------------------------------- */
+/*  Comandos del sistema                                                     */
+/* ------------------------------------------------------------------------- */
+/* El daemon corre como root (servicio systemd), así que wpctl/playerctl no
+ * encuentran la sesión del usuario (sin XDG_RUNTIME_DIR ni D-Bus). Para que
+ * los botones de volumen/brillo/reproducción funcionen, lanzamos los comandos
+ * apuntando al runtime del usuario del escritorio (normalmente uid 1000). */
+static int desktop_uid(void) {
+    struct passwd *pw = getpwnam("macnix");
+    return pw ? (int)pw->pw_uid : 1000;
+}
+
+static void run_user_cmd(const char *cmd) {
+    char prefix[160], full[512];
+    snprintf(prefix, sizeof(prefix),
+             "export XDG_RUNTIME_DIR=/run/user/%d DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%d/bus; ",
+             desktop_uid(), desktop_uid());
+    snprintf(full, sizeof(full), "%s%s", prefix, cmd);
+    system(full);
+}
 
 static void execute(int act) {
     redraw_needed = 1;
@@ -448,14 +464,14 @@ static void execute(int act) {
         case ACT_CAT:   mode = MODE_CAT;   break;
         case ACT_MEDIA: mode = MODE_MEDIA; break;
         case ACT_FKEYS: mode = MODE_FKEYS; break;
-        case ACT_BRIGHT_DOWN: system("brightnessctl set 5%-"); break;
-        case ACT_BRIGHT_UP:   system("brightnessctl set 5%+"); break;
-        case ACT_VOL_DOWN:    system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"); break;
-        case ACT_VOL_UP:      system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"); break;
-        case ACT_MUTE:        system("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"); break;
-        case ACT_PLAY:        system("playerctl play-pause"); break;
-        case ACT_PREV:        system("playerctl previous"); break;
-        case ACT_NEXT:        system("playerctl next"); break;
+        case ACT_BRIGHT_DOWN: run_user_cmd("brightnessctl set 5%-"); break;
+        case ACT_BRIGHT_UP:   run_user_cmd("brightnessctl set 5%+"); break;
+        case ACT_VOL_DOWN:    run_user_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"); break;
+        case ACT_VOL_UP:      run_user_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"); break;
+        case ACT_MUTE:        run_user_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"); break;
+        case ACT_PLAY:        run_user_cmd("playerctl play-pause"); break;
+        case ACT_PREV:        run_user_cmd("playerctl previous"); break;
+        case ACT_NEXT:        run_user_cmd("playerctl next"); break;
         default:
             if (act >= ACT_FKEY_1 && act <= ACT_FKEY_12) {
                 emit_key(KEY_F1 + (act - ACT_FKEY_1));
@@ -502,40 +518,40 @@ static void uinput_init(void) {
 /* ------------------------------------------------------------------------- */
 /*  Dibujado de iconos y botones                                             */
 /* ------------------------------------------------------------------------- */
-static void icon_play(int cx, int cy, uint32_t c) { tri_left(cx + 5, cy, 10, c); }
+static void icon_play(int cx, int cy, uint32_t c) { tri_left(cx + 6, cy, 14, c); }
 static void icon_prev(int cx, int cy, uint32_t c) {
-    tri_right(cx - 5, cy, 10, c); tri_right(cx - 13, cy, 10, c);
+    tri_right(cx - 7, cy, 14, c); tri_right(cx - 17, cy, 14, c);
 }
 static void icon_next(int cx, int cy, uint32_t c) {
-    tri_left(cx + 5, cy, 10, c); tri_left(cx + 13, cy, 10, c);
+    tri_left(cx + 7, cy, 14, c); tri_left(cx + 17, cy, 14, c);
 }
 static void icon_sun(int cx, int cy, int plus, uint32_t c) {
-    disc(cx - (plus ? 4 : 4), cy, 7, c);
+    disc(cx, cy, 9, c);
     for (int a = 0; a < 4; a++) {
         double ang = a * 3.14159265 / 2.0;
-        line(cx + (int)(cos(ang) * 10), cy + (int)(sin(ang) * 10),
-             cx + (int)(cos(ang) * 13), cy + (int)(sin(ang) * 13), c);
+        line(cx + (int)(cos(ang) * 13), cy + (int)(sin(ang) * 13),
+             cx + (int)(cos(ang) * 17), cy + (int)(sin(ang) * 17), c);
     }
-    int sx = cx + (plus ? 12 : -12);
-    text(sx - 4, cy - 3, 1, c, plus ? "+" : "-");
+    int sx = cx + (plus ? 18 : -18);
+    text(sx - 6, cy - 7, 2, c, plus ? "+" : "-");
 }
 static void icon_speaker(int cx, int cy, int muted, uint32_t c) {
-    fill(cx - 12, cy - 5, 7, 10, c);
-    tri_right(cx - 5, cy, 9, c);
+    fill(cx - 16, cy - 7, 9, 14, c);
+    tri_right(cx - 7, cy, 12, c);
     if (muted) {
-        line(cx + 4, cy - 8, cx + 14, cy + 8, PINK);
-        line(cx + 4, cy + 8, cx + 14, cy - 8, PINK);
+        line(cx + 5, cy - 10, cx + 18, cy + 10, PINK);
+        line(cx + 5, cy + 10, cx + 18, cy - 10, PINK);
     }
 }
 static void icon_back(int cx, int cy, uint32_t c) {
-    tri_right(cx - 6, cy, 9, c);
-    fill(cx - 4, cy - 6, 9, 12, c);
+    tri_right(cx - 8, cy, 12, c);
+    fill(cx - 6, cy - 8, 12, 16, c);
 }
 static void icon_cat(int cx, int cy, uint32_t c) {
-    disc(cx, cy, 8, c);
+    disc(cx, cy, 11, c);
     /* orejas */
-    line(cx - 6, cy - 4, cx - 9, cy - 12, c);
-    line(cx + 6, cy - 4, cx + 9, cy - 12, c);
+    line(cx - 8, cy - 5, cx - 12, cy - 16, c);
+    line(cx + 8, cy - 5, cx + 12, cy - 16, c);
 }
 
 static void draw_icon(int icon, int cx, int cy, uint32_t c) {
@@ -871,11 +887,11 @@ static void draw_scene(int frame, int blink, int batt, long el, int typing) {
 
         int fx = (frame_count ? frame : -1);
         if (fx >= 0)
-            draw_frame_at(fx, 100, (H - frames[fx].h) / 2);
+            draw_frame_at(fx, 10, (H - frames[fx].h) / 2);
 
-        /* tormenta: rayo que atraviesa toda la barra + flash al empezar */
+        /* tormenta: rayos finos con fade al empezar a teclear */
         if (typing) {
-            draw_storm();
+            draw_storm((int)el);
         }
 
         draw_time(1010, 30, 30, blink);
@@ -883,8 +899,8 @@ static void draw_scene(int frame, int blink, int batt, long el, int typing) {
         battery(W - 250, 21, batt);
     } else if (mode == MODE_MEDIA) {
         draw_buttons(media_buttons);
-        draw_time(W - 300, 30, 26, blink);
-        battery(W - 250, 21, batt);
+        draw_time(1600, 30, 28, blink);
+        battery(1750, 21, batt);
     } else {
         draw_buttons(fkey_buttons);
         battery(W - 250, 21, batt);

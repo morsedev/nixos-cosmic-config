@@ -258,7 +258,11 @@ in
         "$mod, E, exec, nautilus"
         "$mod, Q, killactive,"
         "$mod, M, exit,"
-        "$mod, F, fullscreen,"
+        # Super+F maximiza SIN tapar la barra (fullscreen 1 = FSMODE_MAXIMIZED:
+        # llena el workspace respetando la zona exclusiva de waybar).
+        # Super+Shift+F es el fullscreen REAL (tapa también la barra, para vídeo).
+        "$mod, F, fullscreen, 1"
+        "$mod SHIFT, F, fullscreen, 2"
         "$mod, V, togglefloating,"
         "$mod, P, pseudo,"
 

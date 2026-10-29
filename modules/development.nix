@@ -55,6 +55,7 @@
     lldb                # depurador (también provee lldb-dap para Neovim)
 
     # --- Utilidades de desarrollo ---
+    opencode            # asistente de IA en la terminal (el que usamos para configurar)
     docker              # contenedores
     docker-compose      # orquestación de contenedores
     gh                  # GitHub CLI (gh pr, gh repo...)
