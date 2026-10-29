@@ -108,6 +108,16 @@ EOF
     # clang busca `ld` en PATH.
     ln -sf ld.lld $out/usr/bin/ld
 
+    # clang.cfg: clang auto-carga un fichero de config junto al binario y
+    # añade estos -isystem a CADA invocación (lo usa el ClangImporter de
+    # swift-frontend para módulos C como CDispatch de XCTest → sys/param.h).
+    cat > $out/usr/bin/clang.cfg <<EOF
+-isystem ${pkgs.glibc.dev}/include
+-isystem ${gccLibDir}/include
+-isystem ${pkgs.zlib.dev}/include
+-isystem ${pkgs.libxml2.dev}/include
+EOF
+
     # Exponer en $out/bin (lo que systemPackages mete en el PATH) los binarios
     # de usr/bin. El layout usr/ se mantiene para que swiftpm detecte bien la
     # raíz del toolchain (el driver resuelve /proc/self/exe hasta swift-driver
