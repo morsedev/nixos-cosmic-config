@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <linux/input.h>
 #include <linux/uinput.h>
+#include <signal.h>
 
 #include <xf86drm.h>
 #include <xf86drmMode.h>
@@ -232,6 +233,50 @@ static void battery(int bx, int by, int battery) {
 /* ------------------------------------------------------------------------- */
 /*  Relámpago                                                                */
 /* ------------------------------------------------------------------------- */
+static uint32_t mix(uint32_t a, uint32_t b, int f) {
+    int ar = (a >> 16) & 255, ag = (a >> 8) & 255, ab = a & 255;
+    int br = (b >> 16) & 255, bg = (b >> 8) & 255, bb = b & 255;
+    int r = ar + ((br - ar) * f) / 100;
+    int g = ag + ((bg - ag) * f) / 100;
+    int bl = ab + ((bb - ab) * f) / 100;
+    return ((uint32_t)r << 16) | ((uint32_t)g << 8) | bl;
+}
+
+static void overlay_flash(int f) {
+    for (int i = 0; i < W * H; i++)
+        canvas[i] = mix(canvas[i], 0xffffff, f);
+}
+
+/* Tormenta: un rayo gigante que atraviesa TODA la barra, con ramas y flash. */
+static void draw_storm(int flash) {
+    int n = 16;
+    int xs[17], ys[17];
+    xs[0] = 120; ys[0] = 10;
+    for (int i = 1; i <= n; i++) {
+        xs[i] = 120 + i * ((W - 240) / n);
+        int step = (i % 2) ? 9 : -7;
+        ys[i] = ys[i - 1] + step;
+        if (ys[i] < 6) ys[i] = 6;
+        if (ys[i] > H - 6) ys[i] = H - 6;
+    }
+    /* ramas desde el rayo principal */
+    for (int i = 2; i < n; i += 2) {
+        int bx = xs[i] + 18, by = ys[i] - 14;
+        line(xs[i], ys[i], bx, by, YELLOW);
+        line(bx, by, bx + 8, by + 4, YELLOW);
+        line(xs[i], ys[i], xs[i] - 14, ys[i] + 16, YELLOW);
+    }
+    /* resplandor (trazo más ancho y tenue) + trazo principal */
+    for (int i = 0; i < n; i++) {
+        line(xs[i], ys[i], xs[i + 1], ys[i + 1], 0x9a6b00);
+        line(xs[i], ys[i] + 1, xs[i + 1], ys[i + 1] + 1, 0x9a6b00);
+        line(xs[i], ys[i], xs[i + 1], ys[i + 1], YELLOW);
+    }
+    if (flash)
+        overlay_flash(flash);
+}
+
+/* Relámpago anterior (ya no se usa, se sustituye por la tormenta) */
 static void draw_bolt(int x, int seed) {
     int pts[][2] = {
         { x, 4 }, { x + 10, 20 }, { x + 4, 20 }, { x + 14, 40 },
@@ -327,14 +372,14 @@ enum {
 typedef struct { int x, y, w, h; int act; const char *label; int icon; } Button;
 /* icon: 0=texto,1=play,2=prev,3=next,4=sun,5=speaker,6=mute,7=back,8=cat */
 
+/* Modo gato: botones GRANDES a la derecha, justo después de la batería. */
 static Button cat_buttons[] = {
-    { 4, 12, 40, 36, ACT_MEDIA, NULL, 1 },     /* ▶ */
-    { 48, 12, 44, 36, ACT_FKEYS, "FN", 0 },
+    { W - 196, 12, 92, 36, ACT_MEDIA, NULL, 1 },   /* ▶ */
+    { W - 98, 12, 92, 36, ACT_FKEYS, "FN", 0 },
     { 0, 0, 0, 0, 0, NULL, 0 }
 };
 
 static Button media_buttons[] = {
-    { 4, 12, 40, 36, ACT_CAT, NULL, 7 },
     { 48, 12, 50, 36, ACT_BRIGHT_DOWN, NULL, 4 },
     { 102, 12, 50, 36, ACT_BRIGHT_UP, NULL, 4 },
     { 156, 12, 50, 36, ACT_VOL_DOWN, NULL, 5 },
@@ -343,6 +388,8 @@ static Button media_buttons[] = {
     { 318, 12, 54, 36, ACT_PREV, NULL, 2 },
     { 376, 12, 54, 36, ACT_PLAY, NULL, 1 },
     { 434, 12, 54, 36, ACT_NEXT, NULL, 3 },
+    /* volver al gato: a la derecha del todo */
+    { W - 196, 12, 92, 36, ACT_CAT, NULL, 7 },
     { 0, 0, 0, 0, 0, NULL, 0 }
 };
 
@@ -372,7 +419,7 @@ static void fkeys_init(void) {
         fkey_buttons[i].label = strdup(lbl);
         fkey_buttons[i].icon = 0;
     }
-    fkey_buttons[12] = (Button){ 4, 12, 40, 36, ACT_CAT, NULL, 7 };
+    fkey_buttons[12] = (Button){ W - 196, 12, 92, 36, ACT_CAT, NULL, 7 };
 }
 
 static void emit_key(int code);
@@ -758,6 +805,25 @@ static void backlight_on(void) {
     }
 }
 
+/* Guarda la pantalla actual en /tmp/touchbar-shot.ppm (para revisarla).
+   SIGUSR2 = guarda una escena "de demostración" (tormenta activa). */
+static void save_shot(int sig) {
+    if (sig == SIGUSR2)
+        draw_scene(frame_count ? frame_count / 2 : 0, 1, battery_level(), 60, 1);
+    FILE *f = fopen("/tmp/touchbar-shot.ppm", "wb");
+    if (f) {
+        fprintf(f, "P6\n%d %d\n255\n", W, H);
+        for (int i = 0; i < W * H; i++) {
+            uint32_t c = canvas[i];
+            unsigned char rgb[3] = { (c >> 16) & 255, (c >> 8) & 255, c & 255 };
+            fwrite(rgb, 1, 3, f);
+        }
+        fclose(f);
+        fprintf(stderr, "captura guardada\n");
+    }
+    (void)sig;
+}
+
 static long now_ms(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -774,7 +840,7 @@ static int battery_level(void) {
 }
 
 /* ------------------------------------------------------------------------- */
-static void draw_scene(int frame, int blink, int batt, long t, int typing) {
+static void draw_scene(int frame, int blink, int batt, long el, int typing) {
     fill(0, 0, W, H, BG);
     fill(0, 0, W, 1, BORDER);
     fill(0, H - 1, W, 1, BORDER);
@@ -786,23 +852,25 @@ static void draw_scene(int frame, int blink, int batt, long t, int typing) {
         if (fx >= 0)
             draw_frame_at(fx, 100, (H - frames[fx].h) / 2);
 
-        /* relámpago: cruza la barra mientras se teclea */
-        long lt = t % 900;
-        if (typing && lt < 600) {
-            int bx = 240 + (int)((lt / 600.0) * (W - 480));
-            draw_bolt(bx, 0);
+        /* tormenta: rayo que atraviesa toda la barra + flash al empezar */
+        if (typing) {
+            int flash = 0;
+            if (el < 90) flash = 65;
+            else if (el < 170) flash = 40;
+            else if (el < 240) flash = 22;
+            draw_storm(flash);
         }
 
         draw_time(1010, 30, 30, blink);
         snowflake(1700, 30, 15, PURPLE);
-        battery(W - 86, 21, batt);
+        battery(W - 250, 21, batt);
     } else if (mode == MODE_MEDIA) {
         draw_buttons(media_buttons);
         draw_time(W - 300, 30, 26, blink);
-        battery(W - 86, 21, batt);
+        battery(W - 250, 21, batt);
     } else {
         draw_buttons(fkey_buttons);
-        battery(W - 86, 21, batt);
+        battery(W - 250, 21, batt);
     }
 }
 
@@ -840,9 +908,11 @@ int main(int argc, char **argv) {
     open_inputs();
     uinput_init();
     fkeys_init();
+    signal(SIGUSR1, save_shot);
 
     int frame = 0;
     long anim_until = 0;
+    long typing_start = 0;
     int last_sec = -1;
     int key_state = 0;
 
@@ -865,20 +935,26 @@ int main(int argc, char **argv) {
 
         long t = now_ms();
         if (pressed_keys > 0) {
-            frame = (frame + 1) % (frame_count ? frame_count : 1);
-            anim_until = t + 900;
+            /* el rayo y el tecleo duran un poco tras cada pulsación */
+            typing_start = t;
+            anim_until = t + 700;
             key_state = 1;
             pressed_keys = 0;
         }
         int typing = (t < anim_until);
         if (!typing) key_state = 0;
+        /* animación fluida: el fotograma avanza por tiempo (cada 70 ms) */
+        if (typing && frame_count > 0)
+            frame = (int)((t / 70) % frame_count);
+        else
+            frame = 0;
 
         int sec = (int)(time(NULL) % 2);
         if (redraw_needed || typing || sec != last_sec) {
             redraw_needed = 0;
             last_sec = sec;
             int fi = typing ? frame : 0;
-            draw_scene(fi, sec, battery_level(), t, key_state);
+            draw_scene(fi, sec, battery_level(), typing ? (t - typing_start) : 0, key_state);
             blit(&p);
         }
     }
