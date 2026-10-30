@@ -89,6 +89,13 @@ insert = """
 """
 assert anchor in src
 open('install-toolchain.sh', 'w').write(src.replace(anchor, anchor + insert, 1))
+# tools/darwin-tools necesita escribirse (.build) pero la copia del store es
+# de solo lectura: chmod antes de compilar actool.
+old_dt = '  (cd "$REPO_DIR/tools/darwin-tools" && swift build -c release --product actool >/dev/null)'
+new_dt = '  chmod -R u+w "$REPO_DIR/tools/darwin-tools" 2>/dev/null || true\n  (cd "$REPO_DIR/tools/darwin-tools" && swift build -c release --product actool >/dev/null)'
+assert old_dt in src, "darwin-tools line not found"
+src = src.replace(old_dt, new_dt, 1)
+open('install-toolchain.sh', 'w').write(src)
 PYEOF
     '';
 
