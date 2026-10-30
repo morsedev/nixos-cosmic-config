@@ -112,10 +112,14 @@ pkgs.stdenv.mkDerivation {
 export LIBRARY_PATH="${pkgs.icu.out}/lib:${pkgs.curl.out}/lib:${pkgs.libxml2.out}/lib:${pkgs.zlib}/lib:${pkgs.sqlite.out}/lib:${pkgs.libedit.out}/lib:${pkgs.ncurses.out}/lib:${gccLibDir}:${pkgs.gcc-unwrapped.lib}/lib:${pkgs.python3}/lib:${pkgs.z3.out}/lib:${pkgs.libbsd.out}/lib:${pkgs.glibc.out}/lib:${pkgs.utillinux.lib}/lib:${pkgs.xz.out}/lib:${pkgs.openssl.out}/lib:${pkgs.libimobiledevice.out}/lib:${pkgs.libplist.out}/lib:${pkgs.libusbmuxd.out}/lib:$COMPAT:$CRT"
 export C_INCLUDE_PATH="${pkgs.glibc.dev}/include:${gccLibDir}/include:${pkgs.zlib.dev}/include:${pkgs.libxml2.dev}/include"
 export CPLUS_INCLUDE_PATH="${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}:${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/aarch64-unknown-linux-gnu:${pkgs.glibc.dev}/include"
-# -Xcc --sysroot=$SYSROOT: el ClangImporter (detección de libc) solo lee los
-# args -Xcc/ExtraArgs y el SearchPathOptions, NO clang.cfg. Con el sysroot en
-# los args encuentra la libc y puede construir SwiftGlibc/CDispatch (XCTest).
-exec "$out/usr/bin/swiftc.orig" -Xcc --sysroot="$SYSROOT" -Xlinker --dynamic-linker="$NIXLD" "\$@"
+# Para targets DARWIN (arm64-apple-ios, -sdk): NO inyectar --dynamic-linker
+# (ld64.lld no lo acepta) ni el sysroot Linux (lo aporta el SDK de iOS).
+if echo "\$*" | grep -q -- '-sdk\|apple-'; then
+  exec "$out/usr/bin/swiftc.orig" "\$@"
+else
+  # Linux: sysroot para el ClangImporter + intérprete dinámico de NixOS.
+  exec "$out/usr/bin/swiftc.orig" -Xcc --sysroot="$SYSROOT" -Xlinker --dynamic-linker="$NIXLD" "\$@"
+fi
 EOF
     chmod +x $out/usr/bin/swiftc
 
@@ -177,11 +181,15 @@ EOF
     for t in swift swift-build swift-test swift-run swift-package; do
       cat > $out/bin/$t <<EOF
 #!/bin/sh
-# -Xcc --sysroot SOLO para build/test/run: swift package (p. ej.
-# show-dependencies, que usa xtool dev) no acepta -Xcc.
+# -Xcc --sysroot SOLO para build/test/run de targets Linux: swift package
+# (p. ej. show-dependencies) no acepta -Xcc, y para iOS el sysroot lo da el SDK.
 case " \$1 " in
   " build "|" test "|" run ")
-    exec "$out/usr/bin/$t" "\$@" -Xcc --sysroot="$SYSROOT" ;;
+    if echo "\$*" | grep -q -- '-sdk\|apple-'; then
+      exec "$out/usr/bin/$t" "\$@"
+    else
+      exec "$out/usr/bin/$t" "\$@" -Xcc --sysroot="$SYSROOT"
+    fi ;;
   *) exec "$out/usr/bin/$t" "\$@" ;;
 esac
 EOF
