@@ -149,7 +149,9 @@ EOF
 # deduplica usr/include y el include_next no encuentra stdlib.h.
 # Estos -isystem SÍ los usa el ClangImporter al compilar módulos C (lzma,
 # openssl, zlib, libxml2, libimobiledevice) — p. ej. para el build de xtool.
--isystem ${gccLibDir}/include
+# OJO: NO añadir ${gccLibDir}/include aquí: trae el arm_neon.h de GCC que
+# clang no entiende ("use of undeclared identifier __builtin_aarch64_*"); clang
+# tiene el suyo en su resource dir.
 -isystem ${pkgs.xz.dev}/include
 -isystem ${pkgs.openssl.dev}/include
 -isystem ${pkgs.zlib.dev}/include
