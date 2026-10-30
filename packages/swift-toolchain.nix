@@ -57,7 +57,7 @@ pkgs.stdenv.mkDerivation {
   nativeBuildInputs = [ pkgs.patchelf ];
   # Deps extra cuyos headers se referencian en clang.cfg (módulos C del
   # ClangImporter: lzma, openssl, zlib, libxml2, libimobiledevice).
-  buildInputs = [ pkgs.xz.dev pkgs.openssl.dev pkgs.zlib.dev pkgs.libxml2.dev pkgs.libimobiledevice.dev pkgs.libplist.dev pkgs.libimobiledevice-glue.dev pkgs.libusbmuxd ];
+  buildInputs = [ pkgs.xz pkgs.xz.dev pkgs.openssl pkgs.openssl.dev pkgs.zlib.dev pkgs.libxml2.dev pkgs.libimobiledevice pkgs.libimobiledevice.dev pkgs.libplist pkgs.libplist.dev pkgs.libimobiledevice-glue.dev pkgs.libusbmuxd ];
 
   dontConfigure = true;
   dontBuild = true;
@@ -109,7 +109,7 @@ pkgs.stdenv.mkDerivation {
     mv $out/usr/bin/swiftc $out/usr/bin/swiftc.orig
     cat > $out/usr/bin/swiftc <<EOF
 #!/bin/sh
-export LIBRARY_PATH="${pkgs.icu.out}/lib:${pkgs.curl.out}/lib:${pkgs.libxml2.out}/lib:${pkgs.zlib}/lib:${pkgs.sqlite.out}/lib:${pkgs.libedit.out}/lib:${pkgs.ncurses.out}/lib:${gccLibDir}:${pkgs.gcc-unwrapped.lib}/lib:${pkgs.python3}/lib:${pkgs.z3.out}/lib:${pkgs.libbsd.out}/lib:${pkgs.glibc.out}/lib:${pkgs.utillinux.lib}/lib:$COMPAT:$CRT"
+export LIBRARY_PATH="${pkgs.icu.out}/lib:${pkgs.curl.out}/lib:${pkgs.libxml2.out}/lib:${pkgs.zlib}/lib:${pkgs.sqlite.out}/lib:${pkgs.libedit.out}/lib:${pkgs.ncurses.out}/lib:${gccLibDir}:${pkgs.gcc-unwrapped.lib}/lib:${pkgs.python3}/lib:${pkgs.z3.out}/lib:${pkgs.libbsd.out}/lib:${pkgs.glibc.out}/lib:${pkgs.utillinux.lib}/lib:${pkgs.xz}/lib:${pkgs.openssl.out}/lib:${pkgs.libimobiledevice}/lib:${pkgs.libplist}/lib:${pkgs.libusbmuxd}/lib:$COMPAT:$CRT"
 export C_INCLUDE_PATH="${pkgs.glibc.dev}/include:${gccLibDir}/include:${pkgs.zlib.dev}/include:${pkgs.libxml2.dev}/include"
 export CPLUS_INCLUDE_PATH="${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}:${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/aarch64-unknown-linux-gnu:${pkgs.glibc.dev}/include"
 # -Xcc --sysroot=$SYSROOT: el ClangImporter (detección de libc) solo lee los
