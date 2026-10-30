@@ -9,6 +9,10 @@
 { config, pkgs, lib, ... }:
 
 {
+  # `~/.local/bin` en el PATH: es donde instala sus binarios el instalador de
+  # iOS (xtool, rcodesign) y otros scripts en modo --user-only.
+  home.sessionPath = [ "$HOME/.local/bin" ];
+
   # ---------------------------------------------------------------------------
   # ZSH
   # ---------------------------------------------------------------------------
