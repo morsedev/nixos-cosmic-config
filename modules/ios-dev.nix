@@ -117,10 +117,17 @@ in
       "${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/backward"
       "${pkgs.glibc.dev}/include"
     ];
-    # xtool-core usa pkg-config para encontrar openssl y libimobiledevice.
+    # xtool-core usa pkg-config para encontrar openssl y las libs del iPhone
+    # (libimobiledevice, libplist, libusbmuxd, glue, lzma, zlib). Sin esto el
+    # link final de xtool queda con símbolos indefinidos.
     PKG_CONFIG_PATH = lib.concatStringsSep ":" [
       "${pkgs.openssl.dev}/lib/pkgconfig"
       "${pkgs.libimobiledevice.dev}/lib/pkgconfig"
+      "${pkgs.libplist.dev}/lib/pkgconfig"
+      "${pkgs.libimobiledevice-glue.dev}/lib/pkgconfig"
+      "${pkgs.libusbmuxd}/lib/pkgconfig"
+      "${pkgs.xz.dev}/lib/pkgconfig"
+      "${pkgs.zlib.dev}/share/pkgconfig"
     ];
   };
 }
