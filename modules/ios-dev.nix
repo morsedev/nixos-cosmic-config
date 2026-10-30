@@ -54,6 +54,20 @@ let
       # `ldd` devuelve no-cero (libs "not found"). Es solo un WARNING: le
       # añadimos `|| true` para que no aborte el instalador.
       perl -0pi -e "s/awk '\/not found\/ \{print \\\$1\}' \| sort -u\)/awk '\/not found\/ {print \\\$1}' | sort -u || true)/" install-toolchain.sh
+      # El binario xtool se compila con `-no-toolchain-stdlib-rpath`; el
+      # instalador copia las libs del runtime de Swift junto a él, pero NO las
+      # libs C de nixpkgs (liblzma, openssl, libimobiledevice, libplist,
+      # libusbmuxd, libimobiledevice-glue, zlib). Le añadimos la copia para
+      # que `xtool` encuentre todo en runtime (rpath \$ORIGIN).
+      sed -i '/^    LD_LIBRARY_PATH="\$runtime" ldd /a\    install -m644 \\
+      ${pkgs.xz.out}/lib/liblzma.so* \\
+      ${pkgs.openssl.out}/lib/libssl.so* ${pkgs.openssl.out}/lib/libcrypto.so* \\
+      ${pkgs.libimobiledevice.out}/lib/libimobiledevice*.so* \\
+      ${pkgs.libplist.out}/lib/libplist*.so* \\
+      ${pkgs.libusbmuxd.out}/lib/libusbmuxd*.so* \\
+      ${pkgs.libimobiledevice-glue.out}/lib/libimobiledevice-glue*.so* \\
+      ${pkgs.zlib.out}/lib/libz.so* \\
+      -t "\$dest"' install-toolchain.sh
     '';
 
     installPhase = ''
@@ -128,18 +142,6 @@ in
       "${pkgs.libusbmuxd}/lib/pkgconfig"
       "${pkgs.xz.dev}/lib/pkgconfig"
       "${pkgs.zlib.dev}/share/pkgconfig"
-    ];
-    # El binario xtool compilado necesita estas libs en runtime (su rpath solo
-    # cubre el toolchain de swift).
-    LD_LIBRARY_PATH = lib.concatStringsSep ":" [
-      "${pkgs.xz.out}/lib"
-      "${pkgs.openssl.out}/lib"
-      "${pkgs.libimobiledevice.out}/lib"
-      "${pkgs.libplist.out}/lib"
-      "${pkgs.libusbmuxd.out}/lib"
-      "${pkgs.zlib}/lib"
-      "${pkgs.glibc.out}/lib"
-      "${pkgs.gcc-unwrapped.lib}/lib"
     ];
   };
 }
