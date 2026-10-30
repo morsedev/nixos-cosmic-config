@@ -44,9 +44,18 @@ Asahi y `uboot-asahi` dejan de compilar (dtc 1.8.1 rompe con
 - **Swift**: paquete propio `packages/swift-toolchain.nix` (toolchain oficial
   de swift.org 6.4.1 para aarch64, adaptado a NixOS: patchelf + layout `usr/`
   + SONAME compat + crt + swiftc wrapper con `--dynamic-linker`). Funcionan
-  `swift`, `swiftc`, `swift build/run`, `swift-format`, `sourcekit-lsp`.
-  `swift test` (XCTest) aún falla (módulo C SwiftGlibc/ClangImporter). Se
-  instala automáticamente con el sistema (módulo `modules/swift.nix`).
+  `swift`, `swiftc`, `swift build/run/test`, `swift-format`, `sourcekit-lsp`
+  (con módulos C: SwiftGlibc/CDispatch vía sysroot sintético). Se instala con
+  el sistema (`modules/swift.nix`).
+- **iOS desde Linux** (`modules/ios-dev.nix`): instala `omarchy-apple-dev`
+  (scripts) + `rcodesign` + usbmuxd + deps, y parchea su `install-toolchain.sh`
+  (comprobación lldb no fatal, libs C/runtime de xtool junto al binario).
+  `install-toolchain.sh --user-only` compila xtool desde fuente y lo deja en
+  `~/.local/bin/xtool` (verificado: `xtool --version`/`dev`/`rcodesign` OK).
+  ÚNICO paso manual pendiente: descargar el `Xcode.xip` (~3 GB, Apple ID) y
+  ejecutar `XCODE_XIP=/ruta/Xcode.xip install-toolchain.sh` (SDK de iOS), luego
+  `device-run.sh` con el iPhone por USB. Fork propio de xtool:
+  github.com/morsedev/xtool.
 - **Desarrollo**: toolchain embedded (gcc-arm-embedded, openocd, stlink,
   dfu-util, picocom, platformio, nrf-command-line-tools, arduino-cli + udev
   rules + grupos dialout/plugdev), PCB (kicad, librepcb, gerbv), IA agentica
