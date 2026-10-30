@@ -60,7 +60,7 @@ let
       # en runtime (rpath \$ORIGIN).
       python3 - <<'PYEOF'
 src = open('install-toolchain.sh').read()
-anchor = 'LD_LIBRARY_PATH="$runtime" ldd "$dest/xtool"'
+anchor = '      xargs -r install -m644 -t "$dest"'
 insert = """
     # (parche nixos) copia también las libs C de nixpkgs para el runtime de xtool
     install -m644 \\
