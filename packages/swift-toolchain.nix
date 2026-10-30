@@ -114,12 +114,12 @@ export C_INCLUDE_PATH="${pkgs.glibc.dev}/include:${gccLibDir}/include:${pkgs.zli
 export CPLUS_INCLUDE_PATH="${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}:${pkgs.gcc-unwrapped.out}/include/c++/${pkgs.gcc-unwrapped.version}/aarch64-unknown-linux-gnu:${pkgs.glibc.dev}/include"
 # Para targets DARWIN (arm64-apple-ios, -sdk): NO inyectar --dynamic-linker
 # (ld64.lld no lo acepta) ni el sysroot Linux (lo aporta el SDK de iOS).
-if echo "\$*" | grep -q -- '-sdk\|apple-'; then
-  exec "$out/usr/bin/swiftc.orig" "\$@"
-else
-  # Linux: sysroot para el ClangImporter + intérprete dinámico de NixOS.
-  exec "$out/usr/bin/swiftc.orig" -Xcc --sysroot="$SYSROOT" -Xlinker --dynamic-linker="$NIXLD" "\$@"
-fi
+case " \$* " in
+  *"-sdk"*|*"apple-"*)
+    exec "$out/usr/bin/swiftc.orig" "\$@" ;;
+  *)
+    exec "$out/usr/bin/swiftc.orig" -Xcc --sysroot="$SYSROOT" -Xlinker --dynamic-linker="$NIXLD" "\$@" ;;
+esac
 EOF
     chmod +x $out/usr/bin/swiftc
 
@@ -185,11 +185,10 @@ EOF
 # (p. ej. show-dependencies) no acepta -Xcc, y para iOS el sysroot lo da el SDK.
 case " \$1 " in
   " build "|" test "|" run ")
-    if echo "\$*" | grep -q -- '-sdk\|apple-'; then
-      exec "$out/usr/bin/$t" "\$@"
-    else
-      exec "$out/usr/bin/$t" "\$@" -Xcc --sysroot="$SYSROOT"
-    fi ;;
+    case " \$* " in
+      *"-sdk"*|*"apple-"*) exec "$out/usr/bin/$t" "\$@" ;;
+      *) exec "$out/usr/bin/$t" "\$@" -Xcc --sysroot="$SYSROOT" ;;
+    esac ;;
   *) exec "$out/usr/bin/$t" "\$@" ;;
 esac
 EOF
