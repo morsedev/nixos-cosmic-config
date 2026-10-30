@@ -61,7 +61,7 @@ let
       python3 - <<'PYEOF'
 src = open('install-toolchain.sh').read()
 anchor = 'LD_LIBRARY_PATH="$runtime" ldd "$dest/xtool"'
-insert = '''
+insert = """
     # (parche nixos) copia también las libs C de nixpkgs para el runtime de xtool
     install -m644 \\
       ${pkgs.xz.out}/lib/liblzma.so* \\
@@ -72,7 +72,7 @@ insert = '''
       ${pkgs.libimobiledevice-glue.out}/lib/libimobiledevice-glue*.so* \\
       ${pkgs.zlib.out}/lib/libz.so* \\
       -t "$dest"
-'''
+"""
 assert anchor in src
 open('install-toolchain.sh', 'w').write(src.replace(anchor, anchor + insert, 1))
 PYEOF
