@@ -64,12 +64,13 @@ src = open('install-toolchain.sh').read()
 # runtime como <root>/lib/swift/linux. Nuestro swift es un wrapper en bin/ con
 # las libs en usr/lib: lo hacemos robusto.
 old_runtime = '    runtime="$(dirname "$(dirname "$(readlink -f "$(command -v swift)")")")/lib/swift/linux"'
-new_runtime = '''    runtime_root="$(dirname "$(dirname "$(readlink -f "$(command -v swift)")")")"
+new_runtime = """
+    runtime_root="$(dirname "$(dirname "$(readlink -f "$(command -v swift)")")")"
     if [ -d "$runtime_root/usr/lib/swift/linux" ]; then
       runtime="$runtime_root/usr/lib/swift/linux"
     else
       runtime="$runtime_root/lib/swift/linux"
-    fi'''
+    fi"""
 assert old_runtime in src, "runtime line not found"
 src = src.replace(old_runtime, new_runtime, 1)
 anchor = '      xargs -r install -m644 -t "$dest"'
