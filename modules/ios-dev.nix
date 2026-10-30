@@ -137,6 +137,12 @@ in
   # (lo usa device-run.sh para el pairing). Activa la detección del iPhone.
   services.usbmuxd.enable = true;
 
+  # swift-driver crea los resource bundles con /usr/bin/touch (hardcoded, sin
+  # mirar el PATH). En NixOS ese path no existe: lo creamos como symlink.
+  systemd.tmpfiles.rules = [
+    "L+ /usr/bin/touch - - - - ${pkgs.coreutils}/bin/touch"
+  ];
+
   # Headers para los módulos C de xtool/zsign (openssl, libimobiledevice) y de
   # glibc/gcc. El build de xtool compila C/C++ vía clang del toolchain de swift
   # y necesita estos include dirs en el entorno.
