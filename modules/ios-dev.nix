@@ -46,7 +46,7 @@ let
     dontConfigure = true;
     dontBuild = true;
     dontFixup = true;
-    nativeBuildInputs = [ pkgs.perl ];
+    nativeBuildInputs = [ pkgs.perl pkgs.python3 ];
 
     patchPhase = ''
       # Con `set -e` + `set -o pipefail`, la comprobación de lldb
@@ -56,10 +56,14 @@ let
       perl -0pi -e "s/awk '\/not found\/ \{print \\\$1\}' \| sort -u\)/awk '\/not found\/ {print \\\$1}' | sort -u || true)/" install-toolchain.sh
       # El binario xtool se compila con `-no-toolchain-stdlib-rpath`; el
       # instalador copia las libs del runtime de Swift junto a él, pero NO las
-      # libs C de nixpkgs (liblzma, openssl, libimobiledevice, libplist,
-      # libusbmuxd, libimobiledevice-glue, zlib). Le añadimos la copia para
-      # que `xtool` encuentre todo en runtime (rpath \$ORIGIN).
-      sed -i '/^    LD_LIBRARY_PATH="\$runtime" ldd /a\    install -m644 \\
+      # libs C de nixpkgs. Le añadimos la copia para que `xtool` encuentre todo
+      # en runtime (rpath \$ORIGIN).
+      python3 - <<'PYEOF'
+src = open('install-toolchain.sh').read()
+anchor = 'LD_LIBRARY_PATH="$runtime" ldd "$dest/xtool"'
+insert = '''
+    # (parche nixos) copia también las libs C de nixpkgs para el runtime de xtool
+    install -m644 \\
       ${pkgs.xz.out}/lib/liblzma.so* \\
       ${pkgs.openssl.out}/lib/libssl.so* ${pkgs.openssl.out}/lib/libcrypto.so* \\
       ${pkgs.libimobiledevice.out}/lib/libimobiledevice*.so* \\
@@ -67,7 +71,11 @@ let
       ${pkgs.libusbmuxd.out}/lib/libusbmuxd*.so* \\
       ${pkgs.libimobiledevice-glue.out}/lib/libimobiledevice-glue*.so* \\
       ${pkgs.zlib.out}/lib/libz.so* \\
-      -t "\$dest"' install-toolchain.sh
+      -t "$dest"
+'''
+assert anchor in src
+open('install-toolchain.sh', 'w').write(src.replace(anchor, anchor + insert, 1))
+PYEOF
     '';
 
     installPhase = ''
