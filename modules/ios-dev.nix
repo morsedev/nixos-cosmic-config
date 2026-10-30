@@ -84,6 +84,7 @@ insert = """
       ${pkgs.libusbmuxd.out}/lib/libusbmuxd*.so* \\
       ${pkgs.libimobiledevice-glue.out}/lib/libimobiledevice-glue*.so* \\
       ${pkgs.zlib.out}/lib/libz.so* \\
+      ${pkgs.gcc-unwrapped.lib}/lib/libstdc++.so* ${pkgs.gcc-unwrapped.lib}/lib/libgcc_s.so* \\
       -t "$dest"
 """
 assert anchor in src
