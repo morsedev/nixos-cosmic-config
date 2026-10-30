@@ -124,6 +124,10 @@ in
     cargo                             # para compilar xtool desde fuente
     rustc
     python3
+    # Generador de proyectos xtool con assets completos (icono + AccentColor).
+    (pkgs.runCommand "xtool-new" { } ''
+      install -Dm755 ${../scripts/xtool-new.sh} $out/bin/xtool-new
+    '')
     # Deps que pide install-toolchain.sh / el build de xtool:
     zip unzip                          # empaquetado .ipa
     xz                                 # liblzma (módulo C de unxip)
