@@ -177,8 +177,10 @@ EOF
     for t in swift swift-build swift-test swift-run swift-package; do
       cat > $out/bin/$t <<EOF
 #!/bin/sh
+# -Xcc --sysroot SOLO para build/test/run: swift package (p. ej.
+# show-dependencies, que usa xtool dev) no acepta -Xcc.
 case " \$1 " in
-  " build "|" test "|" run "|" package ")
+  " build "|" test "|" run ")
     exec "$out/usr/bin/$t" "\$@" -Xcc --sysroot="$SYSROOT" ;;
   *) exec "$out/usr/bin/$t" "\$@" ;;
 esac
