@@ -129,5 +129,17 @@ in
       "${pkgs.xz.dev}/lib/pkgconfig"
       "${pkgs.zlib.dev}/share/pkgconfig"
     ];
+    # El binario xtool compilado necesita estas libs en runtime (su rpath solo
+    # cubre el toolchain de swift).
+    LD_LIBRARY_PATH = lib.concatStringsSep ":" [
+      "${pkgs.xz.out}/lib"
+      "${pkgs.openssl.out}/lib"
+      "${pkgs.libimobiledevice.out}/lib"
+      "${pkgs.libplist.out}/lib"
+      "${pkgs.libusbmuxd.out}/lib"
+      "${pkgs.zlib}/lib"
+      "${pkgs.glibc.out}/lib"
+      "${pkgs.gcc-unwrapped.lib}/lib"
+    ];
   };
 }
