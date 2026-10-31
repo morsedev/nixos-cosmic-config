@@ -65,6 +65,27 @@
   ];
 
   # ---------------------------------------------------------------------------
+  # ARRANQUE LIMPIO (sin logs + logo de NixOS)
+  # ---------------------------------------------------------------------------
+  # Plymouth oculta los logs del kernel/sistema TANTO al encender como al
+  # apagar, mostrando el logo de NixOS con un spinner. `quiet` reduce el ruido
+  # de la consola. Funciona en Apple Silicon (Asahi) porque U-Boot/m1n1 dejan
+  # un simple-framebuffer (simpledrm) que Plymouth usa como renderizador.
+  #
+  # Nota: este módulo declara `options` en el nivel superior, así que toda la
+  # config adicional debe ir dentro del atributo `config = { ... }`.
+  config = {
+    boot.plymouth = {
+      enable = true;
+      theme = "spinner";
+      # Logo grande para que se vea bien (no el de 48px por defecto).
+      logo = "${pkgs.nixos-icons}/share/icons/hicolor/1024x1024/apps/nix-snowflake-white.png";
+    };
+    boot.kernelParams = [ "quiet" ];
+    boot.consoleLogLevel = 3;
+  };
+
+  # ---------------------------------------------------------------------------
   # OPCIONES PROPIAS (para que el flake del usuario las pueda ajustar)
   # ---------------------------------------------------------------------------
   # `options.programs.nixarchy` crea un "namespace" de opciones.
