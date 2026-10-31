@@ -51,12 +51,13 @@ in
   # Menú de energía (lo usa el botón ⏻ de la barra)
   home.packages = [
     (pkgs.writeShellScriptBin "wofi-power" ''
-      choice=$(printf '%s\n' "   Apagar" "   Reiniciar" "   Cerrar sesión" "   Bloquear" | wofi --dmenu --prompt "Energía" --width 300 --height 300)
+      choice=$(printf '%s\n' "   Apagar" "   Reiniciar" "   Cerrar sesión" "   Bloquear" "   Tiempos de inactividad" | wofi --dmenu --prompt "Energía" --width 300 --height 300)
       case "$choice" in
         *Apagar*) systemctl poweroff ;;
         *Reiniciar*) systemctl reboot ;;
         *"Cerrar sesión"*) hyprctl dispatch exit ;;
         *Bloquear*) hyprlock ;;
+        *"Tiempos de inactividad"*) power-times ;;
       esac
     '')
     # Cambiar en caliente cuándo se apaga la pantalla / se suspende (hypridle).

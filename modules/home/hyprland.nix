@@ -298,6 +298,7 @@ in
         "$mod, A, exec, pwvucontrol"
         "$mod, I, exec, settings"
         "$mod SHIFT, T, exec, touchbar menu"
+        "$mod, G, exec, power-times"
 
         # Fondos de pantalla
         "$mod, W, exec, ${lib.getExe wallpaper} next"
