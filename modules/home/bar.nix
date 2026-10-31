@@ -798,8 +798,9 @@ in
         after_sleep_cmd = "hyprctl dispatch dpms on";
       };
       listener = [
-        # Auto-lock DESACTIVADO: hyprlock crashea en este equipo y dejaba la
-        # sesión en la pantalla de error. Se puede bloquear a mano con Super+L.
+        # Auto-lock reactivado tras arreglar hyprlock (se quitó `general.grace`,
+        # opción que ya no existe en 0.9.6 y causaba "lockscreen died").
+        { timeout = 300; on-timeout = "loginctl lock-session"; }              # bloquear a los 5 min
         { timeout = 600; on-timeout = "hyprctl dispatch dpms off"; on-resume = "hyprctl dispatch dpms on"; }
         { timeout = 1800; on-timeout = "systemctl suspend"; }
       ];

@@ -114,9 +114,9 @@ Super+I ajustes · Super+Shift+T touchbar · Super+1..9 workspaces
 
 ## Problemas conocidos / pendientes
 
-1. **hyprlock crashea** en este equipo (mostró "lockscreen died" varias veces).
-   Por eso el **auto-lock está desactivado** (hypridle solo apaga el panel) y el
-   fondo de hyprlock es un color sólido. Arreglar hyprlock si se retoma.
+1. **hyprlock**: ARREGLADO — se quitó `general.grace` (no existe en hyprlock
+   0.9.6 y causaba "lockscreen died"). El **auto-lock está reactivado** (5 min
+   bloqueo, 10 min apagar panel, 30 min suspender).
 2. **gnome-control-center** muestra el banner "Error — some settings cannot be
    unlocked" y deshabilita "Automatic Date & Time" fuera de GNOME. La hora/zona
    ya están bien vía config.
