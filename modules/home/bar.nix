@@ -61,7 +61,7 @@ in
     '')
     # Cambiar en caliente cuándo se apaga la pantalla / se suspende (hypridle).
     (pkgs.runCommand "power-times" { } ''
-      install -Dm755 ${../scripts/power-times.sh} $out/bin/power-times
+      install -Dm755 ${../../scripts/power-times.sh} $out/bin/power-times
     '')
   ];
 
