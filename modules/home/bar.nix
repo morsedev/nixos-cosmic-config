@@ -59,6 +59,10 @@ in
         *Bloquear*) hyprlock ;;
       esac
     '')
+    # Cambiar en caliente cuándo se apaga la pantalla / se suspende (hypridle).
+    (pkgs.runCommand "power-times" { } ''
+      install -Dm755 ${../scripts/power-times.sh} $out/bin/power-times
+    '')
   ];
 
   # ===========================================================================
@@ -806,6 +810,18 @@ in
       ];
     };
   };
+
+  # hypridle: usa ~/.config/hypridle/custom.conf si existe (lo escribe el menú
+  # `power-times` para cambiar los tiempos EN CALIENTE), si no la config de Nix.
+  systemd.user.services.hypridle.Service.ExecStart = lib.mkForce [
+    (pkgs.writeShellScriptBin "hypridle-run" ''
+      if [ -f "$HOME/.config/hypridle/custom.conf" ]; then
+        exec ${pkgs.hypridle}/bin/hypridle -c "$HOME/.config/hypridle/custom.conf"
+      else
+        exec ${pkgs.hypridle}/bin/hypridle
+      fi
+    '')/bin/hypridle-run
+  ];
 
   # ===========================================================================
   # CLIPHIST (historial de portapapeles)
