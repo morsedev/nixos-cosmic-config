@@ -18,15 +18,6 @@
 
 { config, pkgs, lib, ... }:
 
-let
-  # semgrep falla al ejecutar su propia suite de tests contra semgrep-core en
-  # python3.14 (errores de "Failed to obtain target files from semgrep-core",
-  # no del binario). El análisis estático funciona bien: desactivamos los tests.
-  semgrep-no-check =
-    let semgrepPkg = pkgs.python3.pkgs.semgrep.overridePythonAttrs (_: { doCheck = false; });
-    in pkgs.python3.pkgs.toPythonApplication semgrepPkg;
-in
-
 {
   # Permite instalar paquetes con licencia "no libre" (nrf-command-line-tools,
   # navegadores, etc.). Es lo mismo que hace configuration.nix, pero a nivel de
@@ -145,7 +136,6 @@ in
     # ---------------------------------------------------------------------------
     # Seguridad: secretos, SAST y vulnerabilidades.
     gitleaks            # detectar secretos en repos (arnés security)
-    semgrep-no-check    # análisis estático (SAST), sin su suite de tests
     trivy               # vulnerabilidades de fs/imágenes/deps
     # Backend de producto (manual §7).
     supabase-cli        # CLI de Supabase (migraciones, Edge Functions, local dev)
