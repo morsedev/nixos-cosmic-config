@@ -130,6 +130,22 @@
     goose-cli           # agente de código de Block (MCP, autónomo)
     gemini-cli          # agente de Google en terminal
     ddgr                # DuckDuckGo desde CLI (búsqueda rápida)
+
+    # ---------------------------------------------------------------------------
+    # ARNESES DE VALIDACIÓN DE FACTORIA-OS (os/harness)
+    # ---------------------------------------------------------------------------
+    # Seguridad: secretos, SAST y vulnerabilidades.
+    gitleaks            # detectar secretos en repos (arnés security)
+    semgrep             # análisis estático (SAST)
+    trivy               # vulnerabilidades de fs/imágenes/deps
+    # Backend de producto (manual §7).
+    supabase-cli        # CLI de Supabase (migraciones, Edge Functions, local dev)
+    # Validación UI/UX (arnés uiux): E2E + capturas + rendimiento.
+    chromium            # navegador headless (capturas, Lighthouse, E2E)
+    playwright          # E2E web + capturas (browsers en PLAYWRIGHT_BROWSERS_PATH)
+    lighthouse          # métricas perf/a11y/seo
+    # Utilidades para la CLI de la factoría.
+    jq                  # procesar JSON
   ];
 
   # ---------------------------------------------------------------------------
@@ -137,6 +153,15 @@
   # ---------------------------------------------------------------------------
   # Activa el servicio de Docker (el "motor").
   virtualisation.docker.enable = true;
+
+  # ---------------------------------------------------------------------------
+  # VARIABLES DE ENTORNO
+  # ---------------------------------------------------------------------------
+  # Playwright necesita saber dónde están los navegadores instalados vía nixpkgs
+  # (los arneses de UI/UX de FACTORIA-OS usan `npx playwright` / `node`).
+  environment.sessionVariables = {
+    PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright.browsers}";
+  };
 
   # Añade el usuario `macnix` a los grupos necesarios:
   #   docker   → usar docker sin sudo
