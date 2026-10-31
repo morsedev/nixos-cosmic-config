@@ -729,7 +729,8 @@ in
     settings = {
       general = {
         hide_cursor = true;
-        grace = 0;
+        # Nota: `grace` se eliminó en hyprlock 0.9.6 (daba "config option does
+        # not exist" y podía contribuir a los crashes de "lockscreen died").
       };
 
       # Fondo: color sólido Tokyo Night.
